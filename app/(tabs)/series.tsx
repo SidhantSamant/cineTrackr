@@ -1,22 +1,21 @@
-import MovieListItem from '@/components/MovieListItem';
-import { fetchTopRatedMovies } from '@/utils/tmdbService';
+import { Text, StyleSheet, FlatList, View, ActivityIndicator } from 'react-native';
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
-import { ActivityIndicator, FlatList, Text, View } from 'react-native';
+import MovieListItem from '@/components/MovieListItem';
+import { fetchTopRatedTVShows } from '@/utils/tmdbService';
 
 export default function Movies() {
     const queryClient = useQueryClient();
 
     const { data, isLoading, isFetchingNextPage, error, fetchNextPage, refetch } = useInfiniteQuery(
         {
-            queryKey: ['movies'],
+            queryKey: ['series'],
             initialPageParam: 1,
-            queryFn: fetchTopRatedMovies,
+            queryFn: fetchTopRatedTVShows,
             getNextPageParam: (lastPage, pages) => pages.length + 1,
             gcTime: 0,
         },
     );
-    const movies = data?.pages.flat();
-
+    const tvshows = data?.pages.flat();
     if (isLoading) {
         return <ActivityIndicator />;
     }
@@ -27,8 +26,8 @@ export default function Movies() {
     return (
         <View className="flex-1 ">
             <FlatList
-                data={movies}
-                numColumns={2}
+                data={tvshows}
+                numColumns={3}
                 keyExtractor={(item, index) => index.toString()}
                 contentContainerStyle={{ gap: 8, padding: 8 }}
                 columnWrapperStyle={{ gap: 8 }}
