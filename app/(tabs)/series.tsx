@@ -2,6 +2,7 @@ import { Text, StyleSheet, FlatList, View, ActivityIndicator } from 'react-nativ
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import MovieListItem from '@/components/MovieListItem';
 import { fetchTopRatedTVShows } from '@/utils/tmdbService';
+import { Colors } from '@/constants/Colors';
 
 export default function Movies() {
     const queryClient = useQueryClient();
@@ -24,7 +25,7 @@ export default function Movies() {
         return <Text>{error.message}</Text>;
     }
     return (
-        <View className="flex-1 ">
+        <View className="flex-1" style={{ backgroundColor: Colors.background }}>
             <FlatList
                 data={tvshows}
                 numColumns={3}
@@ -43,20 +44,10 @@ export default function Movies() {
                 ListFooterComponent={() =>
                     isFetchingNextPage && (
                         <View>
-                            <ActivityIndicator size="large" color="#0000ff" />
+                            <ActivityIndicator size="large" color={Colors.primary} />
                         </View>
                     )
                 }
-                // ListFooterComponent={() => {
-                // 	console.log("isLoading " + isLoading);
-                // 	console.log("isFetchingNextPage " + isFetchingNextPage);
-
-                // 	if (isLoading || isFetchingNextPage) {
-                // 		return <ActivityIndicator size="large" color="#0000ff" style={{ paddingBottom: 50 }} />;
-                // 	} else {
-                // 		return null;
-                // 	}
-                // }}
             />
         </View>
     );

@@ -31,3 +31,12 @@ export const fetchTopRatedTVShows = async ({ pageParam }: { pageParam: number })
         console.log(error);
     }
 };
+
+export const getMovieCast = async (movieId: number) => {
+    try {
+        const data = await tmdbClient.get<any>(`movie/${movieId}/credits`);
+        return data?.cast;
+    } catch (error) {
+        console.log(error);
+    }
+};
