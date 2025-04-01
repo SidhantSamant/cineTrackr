@@ -1,5 +1,5 @@
 import { MovieResponse } from '@/models/Movie';
-import { TVShowsResponse } from '@/models/Show';
+import { MediaType, TVShowsResponse } from '@/models/Show';
 import tmdbClient from './tmdbClient';
 
 export const fetchTopRatedMovies = async ({ pageParam }: { pageParam: number }) => {
@@ -13,9 +13,9 @@ export const fetchTopRatedMovies = async ({ pageParam }: { pageParam: number }) 
     }
 };
 
-export const getMovieDetails = async (id: number) => {
+export const getMovieDetails = async (type: MediaType, id: number) => {
     try {
-        return await tmdbClient.get<any>(`movie/${id}?language=en-US`);
+        return await tmdbClient.get<any>(`${type}/${id}?language=en-US`);
     } catch (error) {
         console.log(error);
     }
@@ -32,9 +32,9 @@ export const fetchTopRatedTVShows = async ({ pageParam }: { pageParam: number })
     }
 };
 
-export const getMovieCast = async (movieId: number) => {
+export const getMovieCast = async (type: MediaType, movieId: number) => {
     try {
-        const data = await tmdbClient.get<any>(`movie/${movieId}/credits`);
+        const data = await tmdbClient.get<any>(`${type}/${movieId}/credits`);
         return data?.cast;
     } catch (error) {
         console.log(error);

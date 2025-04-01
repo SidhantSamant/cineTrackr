@@ -33,7 +33,7 @@ export default function Movies() {
                 keyExtractor={(item, index) => index.toString()}
                 contentContainerStyle={{ gap: 8, padding: 8 }}
                 columnWrapperStyle={{ gap: 8 }}
-                renderItem={({ item }) => <MovieListItem movie={item} />}
+                renderItem={({ item }) => <MovieListItem movie={item} type="movie" />}
                 onEndReached={() => {
                     fetchNextPage();
                 }}
