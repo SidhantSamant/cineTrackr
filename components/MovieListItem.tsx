@@ -26,6 +26,8 @@ const MovieListItem = ({ movie, type }: { movie?: Movie | TVShow; type: MediaTyp
                     placeholder={require('@/assets/images/placeholder_img.jpg')}
                     source={{ uri: `https://image.tmdb.org/t/p/w500${movie?.poster_path}` }}
                     style={{ width: '100%', aspectRatio: 3 / 5, borderRadius: 16 }}
+                    contentFit="cover"
+                    placeholderContentFit="cover"
                 />
             </Pressable>
         </Link>

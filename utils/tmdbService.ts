@@ -13,7 +13,7 @@ export const fetchTopRatedMovies = async ({ pageParam }: { pageParam: number }) 
     }
 };
 
-export const getMovieDetails = async (type: MediaType, id: number) => {
+export const getDetails = async (type: MediaType, id: number) => {
     try {
         return await tmdbClient.get<any>(`${type}/${id}?language=en-US`);
     } catch (error) {
@@ -32,9 +32,17 @@ export const fetchTopRatedTVShows = async ({ pageParam }: { pageParam: number })
     }
 };
 
-export const getMovieCast = async (type: MediaType, movieId: number) => {
+export const getCast = async (type: MediaType, movieId: number) => {
     try {
         const data = await tmdbClient.get<any>(`${type}/${movieId}/credits`);
+        return data?.cast;
+    } catch (error) {
+        console.log(error);
+    }
+};
+export const getAllEpisodes = async (tvId: number, seasonNumber: number) => {
+    try {
+        const data = await tmdbClient.get<any>(`tv/${tvId}/season/${seasonNumber}/episodes`);
         return data?.cast;
     } catch (error) {
         console.log(error);
