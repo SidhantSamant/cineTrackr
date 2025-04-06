@@ -1,6 +1,6 @@
 import { getAllEpisodes, getCast, getDetails } from '@/utils/tmdbService';
 import { useQuery } from '@tanstack/react-query';
-import { Stack, useLocalSearchParams } from 'expo-router';
+import { router, Stack, useLocalSearchParams } from 'expo-router';
 import {
     ActivityIndicator,
     Dimensions,
@@ -24,6 +24,8 @@ import Animated, {
 } from 'react-native-reanimated';
 import { StatusBar } from 'expo-status-bar';
 import { useRef } from 'react';
+import { LinearGradient } from 'expo-linear-gradient';
+import Entypo from '@expo/vector-icons/Entypo';
 
 const { width } = Dimensions.get('window');
 const IMG_HEIGHT = 300;
@@ -93,6 +95,7 @@ const MovieDetails = () => {
                         scrollOffset.value,
                         [-IMG_HEIGHT, 0, IMG_HEIGHT],
                         [-IMG_HEIGHT / 2, 0, IMG_HEIGHT * 0.75],
+                        Extrapolation.CLAMP,
                     ),
                 },
                 {
@@ -136,9 +139,38 @@ const MovieDetails = () => {
 
             <Stack.Screen
                 options={{
-                    title: data.title,
+                    headerTitle: () => (
+                        <Animated.Text
+                            numberOfLines={1}
+                            style={[
+                                {
+                                    textAlign: 'center',
+                                    color: 'white',
+                                    fontWeight: '600',
+                                    fontSize: 18,
+                                    marginEnd: 8,
+                                    marginStart: 8,
+                                },
+                                headerAnimatedStyle,
+                            ]}>
+                            {data.title}
+                        </Animated.Text>
+                    ),
+                    // title: data.title,
                     headerTransparent: true,
-                    headerLeft: () => <Text>Back</Text>,
+                    headerLeft: () => (
+                        <View
+                            className="rounded-full p-2"
+                            style={{ backgroundColor: 'rgba(30, 30, 30, 0.5)' }}>
+                            <Entypo
+                                name="chevron-left"
+                                size={24}
+                                color="white"
+                                onPress={router.back}
+                            />
+                        </View>
+                    ),
+                    headerRight: () => <Entypo name="chevron-left" size={24} color="transparent" />,
                     headerBackground: () => (
                         <Animated.View style={[styles.header, headerAnimatedStyle]} />
                     ),
@@ -164,6 +196,17 @@ const MovieDetails = () => {
                         }}
                         contentFit="cover"
                         placeholderContentFit="cover"
+                    />
+                    <LinearGradient
+                        // Button Linear Gradient
+                        style={{
+                            width: '100%',
+                            height: 224,
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                        }}
+                        colors={['transparent', 'transparent', '#121212']}
                     />
                     {/* Movie Poster */}
                     <View
@@ -195,20 +238,46 @@ const MovieDetails = () => {
                             contentFit="contain"
                             placeholderContentFit="cover"
                         />
+                        <LinearGradient
+                            style={{
+                                position: 'absolute',
+                                left: 16,
+                                top: -64,
+                                height: 168,
+                                width: 108,
+                                borderRadius: 8,
+                            }}
+                            colors={['transparent', 'transparent', '#121212']}
+                        />
                     </View>
                     {/* Title & Rating */}
-                    <View className="ml-44 mt-4">
-                        <Text className="text-3xl font-bold text-white">
+                    <View className="ml-40 mt-4">
+                        <Text className="text-2xl font-bold text-white">
                             {type === 'movie' ? data.title : data.name}
                         </Text>
                         <View className="mt-2 flex-row items-center">
-                            <Text className="text-lg text-yellow-400">{data.vote_average}</Text>
-                            <Text className="ml-2 text-sm text-gray-400">/ 10</Text>
+                            <Text className="text-lg text-yellow-400">
+                                {data.vote_average.toFixed(1)}
+                            </Text>
+                            <Text className="ml-2 text-base font-semibold text-gray-400">/ 10</Text>
                         </View>
-                        <Text className="text-sm text-gray-400">({data.vote_count} votes)</Text>
-                        <Text className="mt-2 text-sm text-gray-400">
-                            Popularity: {data.popularity.toFixed(1)}
-                        </Text>
+                    </View>
+                    {/* Action Buttons */}
+                    <View className="mt-8 flex-row justify-around">
+                        <TouchableOpacity
+                            className="rounded-full bg-gray-700 px-4 py-2"
+                            onPress={() => console.log('Play Movie')}>
+                            <Text className="text-lg font-semibold text-white">
+                                Already Watched
+                            </Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            className="rounded-full bg-gray-700 px-4 py-2"
+                            onPress={() => console.log('Add to Watchlist')}>
+                            <Text className="text-lg font-semibold text-white">
+                                Add to Watchlist
+                            </Text>
+                        </TouchableOpacity>
                     </View>
                 </Animated.View>
                 <View className="bg-[#121212] p-3">
@@ -294,22 +363,6 @@ const MovieDetails = () => {
                             showsHorizontalScrollIndicator={false}
                         />
                     </View>
-
-                    {/* Action Buttons */}
-                    <View className="my-6 flex-row justify-around">
-                        <TouchableOpacity
-                            className="rounded-full bg-blue-600 px-6 py-2"
-                            onPress={() => console.log('Play Movie')}>
-                            <Text className="text-lg font-semibold text-white">Play Movie</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            className="rounded-full bg-red-600 px-6 py-2"
-                            onPress={() => console.log('Add to Watchlist')}>
-                            <Text className="text-lg font-semibold text-white">
-                                Add to Watchlist
-                            </Text>
-                        </TouchableOpacity>
-                    </View>
                 </View>
             </Animated.ScrollView>
         </View>
@@ -329,6 +382,10 @@ const styles = StyleSheet.create({
         color: 'white',
         height: 100,
         borderWidth: StyleSheet.hairlineWidth,
+    },
+    imageOverlay: {
+        height: 224 + 50,
+        ...StyleSheet.absoluteFillObject,
     },
     // imageShadow: {
     //     shadowColor: '#000000',
