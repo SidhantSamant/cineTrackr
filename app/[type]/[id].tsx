@@ -153,7 +153,7 @@ const MovieDetails = () => {
                                 },
                                 headerAnimatedStyle,
                             ]}>
-                            {data.title}
+                            {type === 'movie' ? data.title : data.name}
                         </Animated.Text>
                     ),
                     // title: data.title,
@@ -231,11 +231,11 @@ const MovieDetails = () => {
                                 position: 'absolute',
                                 left: 16,
                                 top: -64,
-                                height: 168,
-                                width: 108,
+                                height: 152,
+                                width: 98,
                                 borderRadius: 8,
                             }}
-                            contentFit="contain"
+                            contentFit="cover"
                             placeholderContentFit="cover"
                         />
                         <LinearGradient
@@ -243,23 +243,23 @@ const MovieDetails = () => {
                                 position: 'absolute',
                                 left: 16,
                                 top: -64,
-                                height: 168,
-                                width: 108,
+                                height: 152,
+                                width: 98,
                                 borderRadius: 8,
                             }}
                             colors={['transparent', 'transparent', '#121212']}
                         />
                     </View>
                     {/* Title & Rating */}
-                    <View className="ml-40 mt-4">
+                    <View className="ml-36 mt-2">
                         <Text className="text-2xl font-bold text-white">
                             {type === 'movie' ? data.title : data.name}
                         </Text>
                         <View className="mt-2 flex-row items-center">
-                            <Text className="text-lg text-yellow-400">
+                            <Text className="text-lg font-semibold text-yellow-400 ">
                                 {data.vote_average.toFixed(1)}
                             </Text>
-                            <Text className="ml-2 text-base font-semibold text-gray-400">/ 10</Text>
+                            <Text className="ml-2 text-xl font-semibold text-gray-400">/ 10</Text>
                         </View>
                     </View>
                     {/* Action Buttons */}
