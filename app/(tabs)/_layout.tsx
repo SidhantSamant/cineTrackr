@@ -54,7 +54,7 @@ export default function TabLayout() {
                     ),
                 }}
             />
-            <Tabs.Screen
+            {/* <Tabs.Screen
                 name="watchlist"
                 options={{
                     href: null,
@@ -63,7 +63,7 @@ export default function TabLayout() {
                         <TabBarIcon name="bookmark" color={Colors.primary} />
                     ),
                 }}
-            />
+            /> */}
         </Tabs>
     );
 }
