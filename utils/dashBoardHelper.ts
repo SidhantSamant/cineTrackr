@@ -5,11 +5,11 @@ export enum SectionHeadings {
     UpcomingMovies = 'Upcoming Movies',
     NowPlayingMovies = 'Now Playing Movies',
 
-    // TV Series
-    PopularTV = 'Popular TV Series',
-    TopRatedTV = 'Top Rated TV Series',
-    AiringTodayTV = 'Airing Today TV Series',
-    OnTheAirTV = 'On The Air TV Series',
+    // TV Shows
+    PopularTV = 'Popular TV Shows',
+    TopRatedTV = 'Top Rated TV Shows',
+    AiringTodayTV = 'Airing Today TV Shows',
+    OnTheAirTV = 'On The Air TV Shows',
 }
 
 export const getCategorySlug = (heading: SectionHeadings): string => {
@@ -24,7 +24,7 @@ export const getCategorySlug = (heading: SectionHeadings): string => {
         case SectionHeadings.NowPlayingMovies:
             return 'now_playing';
 
-        // TV Series
+        // TV Shows
         case SectionHeadings.PopularTV:
             return 'popular';
         case SectionHeadings.TopRatedTV:

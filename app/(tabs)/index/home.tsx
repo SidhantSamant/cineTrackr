@@ -47,8 +47,8 @@ export default function HomeScreen() {
             }),
     });
 
-    const { data: topRatedTVSeries, isLoading: isLoadingTopRatedTVSeries } = useQuery({
-        queryKey: ['TopRatedTVSeries'],
+    const { data: topRatedTVShows, isLoading: isLoadingTopRatedTVShows } = useQuery({
+        queryKey: ['TopRatedTVShows'],
         queryFn: () =>
             fetchListData({
                 pageParam: 1,
@@ -96,7 +96,7 @@ export default function HomeScreen() {
         isLoadingUpcomingMovies ||
         isLoadingPopularMovies ||
         isLoadingNowPlayingMovies ||
-        isLoadingTopRatedTVSeries ||
+        isLoadingTopRatedTVShows ||
         isLoadingPopularTVShows ||
         isLoadingOnTheAirTVShows ||
         isLoadingTrendingList ||
@@ -141,7 +141,7 @@ export default function HomeScreen() {
                     listData={upcomingMovies}
                 />
 
-                {/* TV Series */}
+                {/* TV Shows */}
                 <HomeHorizontalList
                     ListHeading={SectionHeadings.AiringTodayTV}
                     listType="tv"
@@ -155,7 +155,7 @@ export default function HomeScreen() {
                 <HomeHorizontalList
                     ListHeading={SectionHeadings.TopRatedTV}
                     listType="tv"
-                    listData={topRatedTVSeries}
+                    listData={topRatedTVShows}
                 />
                 <HomeHorizontalList
                     ListHeading={SectionHeadings.OnTheAirTV}
