@@ -9,7 +9,7 @@ import 'react-native-reanimated';
 // import { useColorScheme } from "@/components/useColorScheme";
 import { StatusBar } from 'expo-status-bar';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useReactQueryDevTools } from '@dev-plugins/react-query';
+// import { useReactQueryDevTools } from '@dev-plugins/react-query';
 import '@/global.css';
 
 const queryClient = new QueryClient();
@@ -59,7 +59,7 @@ export default function RootLayout() {
 }
 
 function RootLayoutNav() {
-    useReactQueryDevTools(queryClient);
+    // useReactQueryDevTools(queryClient);
     return (
         <QueryClientProvider client={queryClient}>
             <ThemeProvider value={DarkTheme}>

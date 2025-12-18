@@ -1,22 +1,37 @@
 import MovieListItem from '@/components/MovieListItem';
 import { Colors } from '@/constants/Colors';
-import { fetchTopRatedMovies } from '@/utils/tmdbService';
+import { MediaType } from '@/models/Show';
+import { fetchListData } from '@/utils/tmdbService';
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
+import { useLocalSearchParams, useNavigation } from 'expo-router';
+import { useLayoutEffect } from 'react';
 import { ActivityIndicator, FlatList, Text, View } from 'react-native';
 
-export default function Movies() {
-    const queryClient = useQueryClient();
+export default function MoviesScreen() {
+    const navigation = useNavigation();
+    const { type, slug, title } = useLocalSearchParams<{
+        type: MediaType;
+        slug: string;
+        title: string;
+    }>();
+
+    useLayoutEffect(() => {
+        navigation.setOptions({
+            headerTitle: title,
+        });
+    }, [navigation, title]);
 
     const { data, isLoading, isFetchingNextPage, error, fetchNextPage, refetch } = useInfiniteQuery(
         {
-            queryKey: ['movies'],
+            queryKey: [type, slug],
             initialPageParam: 1,
-            queryFn: fetchTopRatedMovies,
+            queryFn: ({ pageParam }) => fetchListData({ pageParam, type, slug }),
             getNextPageParam: (lastPage, pages) => pages.length + 1,
             gcTime: 0,
         },
     );
-    const movies = data?.pages.flat();
+
+    const listData = data?.pages.flat();
 
     if (isLoading) {
         return <ActivityIndicator />;
@@ -25,21 +40,23 @@ export default function Movies() {
     if (error) {
         return <Text>{error.message}</Text>;
     }
+
     return (
-        <View className="flex-1" style={{ backgroundColor: Colors.background }}>
+        <View className="flex-1 pr-2" style={{ backgroundColor: Colors.background }}>
             <FlatList
-                data={movies}
+                data={listData}
                 numColumns={3}
                 keyExtractor={(item, index) => index.toString()}
                 contentContainerStyle={{ gap: 8, padding: 8 }}
                 columnWrapperStyle={{ gap: 8 }}
-                renderItem={({ item }) => <MovieListItem movie={item} type="movie" />}
+                renderItem={({ item }) => (
+                    <MovieListItem data={item} type={type} isGridView={true} />
+                )}
                 onEndReached={() => {
                     fetchNextPage();
                 }}
                 refreshing={isLoading && isFetchingNextPage}
                 onRefresh={() => {
-                    // queryClient.invalidateQueries(["movies"]);
                     refetch();
                 }}
                 ListFooterComponent={() =>

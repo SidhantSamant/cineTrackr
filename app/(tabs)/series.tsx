@@ -1,17 +1,17 @@
-import { Text, StyleSheet, FlatList, View, ActivityIndicator } from 'react-native';
-import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import MovieListItem from '@/components/MovieListItem';
-import { fetchTopRatedTVShows } from '@/utils/tmdbService';
 import { Colors } from '@/constants/Colors';
+import { fetchListData } from '@/utils/tmdbService';
+import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
+import { ActivityIndicator, FlatList, Text, View } from 'react-native';
 
-export default function Movies() {
+export default function TVShowsScreen() {
     const queryClient = useQueryClient();
 
     const { data, isLoading, isFetchingNextPage, error, fetchNextPage, refetch } = useInfiniteQuery(
         {
             queryKey: ['series'],
             initialPageParam: 1,
-            queryFn: fetchTopRatedTVShows,
+            queryFn: () => fetchListData({ pageParam: 1, type: 'tv', slug: 'top_rated' }),
             getNextPageParam: (lastPage, pages) => pages.length + 1,
             gcTime: 0,
         },
@@ -25,14 +25,14 @@ export default function Movies() {
         return <Text>{error.message}</Text>;
     }
     return (
-        <View className="flex-1" style={{ backgroundColor: Colors.background }}>
+        <View className="flex-1 pr-2" style={{ backgroundColor: Colors.background }}>
             <FlatList
                 data={tvshows}
                 numColumns={3}
                 keyExtractor={(item, index) => index.toString()}
                 contentContainerStyle={{ gap: 8, padding: 8 }}
                 columnWrapperStyle={{ gap: 8 }}
-                renderItem={({ item }) => <MovieListItem movie={item} type="tv" />}
+                renderItem={({ item }) => <MovieListItem data={item} type="tv" isGridView={true} />}
                 onEndReached={() => {
                     fetchNextPage();
                 }}

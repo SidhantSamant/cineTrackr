@@ -1,17 +1,7 @@
 import { MovieResponse } from '@/models/Movie';
 import { MediaType, TVShowsResponse } from '@/models/Show';
 import tmdbClient from './tmdbClient';
-
-export const fetchTopRatedMovies = async ({ pageParam }: { pageParam: number }) => {
-    try {
-        const data = await tmdbClient.get<MovieResponse>(
-            `movie/top_rated?language=en-US&page=${pageParam}`,
-        );
-        return data?.results;
-    } catch (error) {
-        console.log(error);
-    }
-};
+import { TrendingResponse } from '@/models/TrendingItem';
 
 export const getDetails = async (type: MediaType, id: number) => {
     try {
@@ -21,11 +11,28 @@ export const getDetails = async (type: MediaType, id: number) => {
     }
 };
 
-export const fetchTopRatedTVShows = async ({ pageParam }: { pageParam: number }) => {
+export const fetchListData = async ({
+    pageParam,
+    type,
+    slug,
+}: {
+    pageParam: number;
+    type: MediaType;
+    slug: string;
+}) => {
     try {
-        const data = await tmdbClient.get<TVShowsResponse>(
-            `tv/top_rated?language=en-US&page=${pageParam}`,
+        const data = await tmdbClient.get<MovieResponse | TVShowsResponse>(
+            `${type}/${slug}?language=en-US&page=${pageParam}`,
         );
+        return data?.results;
+    } catch (error) {
+        console.log(error);
+    }
+};
+
+export const fetchTrendingList = async () => {
+    try {
+        const data = await tmdbClient.get<TrendingResponse>(`trending/all/day?language=en-US`);
         return data?.results;
     } catch (error) {
         console.log(error);

@@ -1,31 +1,29 @@
-import { getAllEpisodes, getCast, getDetails } from '@/utils/tmdbService';
+import { Colors } from '@/constants/Colors';
+import { MediaType } from '@/models/Show';
+import { getCast, getDetails } from '@/utils/tmdbService';
+import Entypo from '@expo/vector-icons/Entypo';
 import { useQuery } from '@tanstack/react-query';
+import { Image } from 'expo-image';
+import { LinearGradient } from 'expo-linear-gradient';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import {
     ActivityIndicator,
     Dimensions,
     FlatList,
+    Pressable,
+    StyleSheet,
     Text,
     TouchableOpacity,
     View,
-    StyleSheet,
 } from 'react-native';
-import { Image } from 'expo-image';
-import { Colors } from '@/constants/Colors';
-import { MediaType } from '@/models/Show';
 import Animated, {
     Extrapolation,
     interpolate,
-    useAnimatedRef,
     useAnimatedScrollHandler,
     useAnimatedStyle,
-    useScrollViewOffset,
     useSharedValue,
 } from 'react-native-reanimated';
-import { StatusBar } from 'expo-status-bar';
-import { useRef } from 'react';
-import { LinearGradient } from 'expo-linear-gradient';
-import Entypo from '@expo/vector-icons/Entypo';
 
 const { width } = Dimensions.get('window');
 const IMG_HEIGHT = 300;
@@ -40,7 +38,6 @@ const renderCastItem = ({ item }: { item: any }) => (
                       }
                     : require('@/assets/images/placeholder_profile.jpg')
             }
-            // className="h-24 w-24 rounded-full border-2 border-white"
             style={{
                 width: 96,
                 height: 96,
@@ -66,21 +63,11 @@ const MovieDetails = () => {
         queryKey: [type, id],
         queryFn: () => getDetails(type, +id),
     });
-    // console.log('Data', data);
+
     const { data: cast } = useQuery({
         queryKey: [type, 'cast', id],
         queryFn: () => getCast(type, +id),
     });
-    // console.log('cast', cast);
-
-    // const { data: episodes } = useQuery({
-    //     queryKey: [type, 'episodes', id],
-    //     queryFn: () => getAllEpisodes(+id, 1),
-    // });
-    // console.log('episodes', episodes);
-
-    // const scrollRef = useAnimatedRef<Animated.ScrollView>();
-    // const scrollOffset = useScrollViewOffset(scrollRef);
 
     const scrollOffset = useSharedValue(0);
     const handleScroll = useAnimatedScrollHandler((event) => {
@@ -156,21 +143,17 @@ const MovieDetails = () => {
                             {type === 'movie' ? data.title : data.name}
                         </Animated.Text>
                     ),
-                    // title: data.title,
+                    headerTitleAlign: 'center',
                     headerTransparent: true,
                     headerLeft: () => (
-                        <View
+                        <Pressable
                             className="rounded-full p-2"
+                            onPress={router.back}
+                            hitSlop={20}
                             style={{ backgroundColor: 'rgba(30, 30, 30, 0.5)' }}>
-                            <Entypo
-                                name="chevron-left"
-                                size={24}
-                                color="white"
-                                onPress={router.back}
-                            />
-                        </View>
+                            <Entypo name="chevron-left" size={24} color="white" />
+                        </Pressable>
                     ),
-                    headerRight: () => <Entypo name="chevron-left" size={24} color="transparent" />,
                     headerBackground: () => (
                         <Animated.View style={[styles.header, headerAnimatedStyle]} />
                     ),
@@ -188,7 +171,6 @@ const MovieDetails = () => {
                             uri: `https://image.tmdb.org/t/p/original${data.backdrop_path}`,
                         }}
                         placeholder={require('@/assets/images/placeholder_img.jpg')}
-                        // className="mb-4 h-56 w-full rounded-b-lg"
                         style={{
                             width: '100%',
                             height: 224,
@@ -226,7 +208,6 @@ const MovieDetails = () => {
                                 uri: `https://image.tmdb.org/t/p/w500${data.poster_path}`,
                             }}
                             placeholder={require('@/assets/images/placeholder_img.jpg')}
-                            // className="absolute left-4 top-[-80px] h-56 w-36 rounded-lg border-4 border-white"
                             style={{
                                 position: 'absolute',
                                 left: 16,
