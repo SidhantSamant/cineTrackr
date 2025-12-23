@@ -3,7 +3,8 @@ import { Colors } from '@/constants/Colors';
 import { CastVM } from '@/models/BaseMediaVM';
 import { MediaType } from '@/models/TVShowVM';
 import { getYouTubeKey } from '@/utils/detailHelper';
-import { getDetails } from '@/utils/tmdbService';
+import { BLURHASH_TRANSITION, getBlurHash, getTMDBImageSource } from '@/utils/imgHelper';
+import { getDetails, getMovieCollection } from '@/utils/tmdbService';
 import {
     formatMovieRuntime,
     formatTVSeasonsMeta,
@@ -40,16 +41,10 @@ import Animated, {
 const { width } = Dimensions.get('window');
 const IMG_HEIGHT = 300;
 
-const renderCastItem = ({ item }: { item: any }) => (
+const renderCastItem = ({ item }: { item: CastVM }) => (
     <View className="my-2 mr-4 items-center">
         <Image
-            source={
-                item.profile_path
-                    ? {
-                          uri: `https://image.tmdb.org/t/p/w500${item.profile_path}`,
-                      }
-                    : require('@/assets/images/placeholder_profile.jpg')
-            }
+            source={getTMDBImageSource(item.profile_path, 'w185', 'profile')}
             style={{
                 width: 96,
                 height: 96,
@@ -57,29 +52,37 @@ const renderCastItem = ({ item }: { item: any }) => (
                 // borderWidth: 2,
                 // borderColor: 'white',
             }}
+            placeholder={getBlurHash(item.profile_path)}
+            transition={BLURHASH_TRANSITION}
             contentFit="cover"
             placeholderContentFit="cover"
         />
 
         <Text className="text-sm text-white">{item.name}</Text>
         <Text className="max-w-24 text-center text-xs text-gray-300" numberOfLines={1}>
-            {item.character || item.job}
+            {item.character}
         </Text>
     </View>
 );
 
-const MovieDetails = () => {
+const MediaDetailScreen = () => {
     const { id, type } = useLocalSearchParams<{ id: string; type: MediaType }>();
 
     const { data, isLoading, error } = useQuery({
         queryKey: [type, id],
         queryFn: () => getDetails(type, +id),
     });
+    const { data: movieCollections } = useQuery({
+        queryKey: [type, 'collections', id],
+        queryFn: () => getMovieCollection(data?.belongs_to_collection?.id),
+        enabled: !!data?.belongs_to_collection?.id,
+    });
 
-    // const { data: cast } = useQuery({
-    //     queryKey: [type, 'cast', id],
-    //     queryFn: () => getCast(type, +id),
-    // });
+    const movieCollectionSorted = movieCollections
+        ? [...movieCollections?.parts].sort((a, b) => {
+              return new Date(a.release_date).getTime() - new Date(b.release_date).getTime();
+          })
+        : undefined;
 
     const scrollOffset = useSharedValue(0);
     const handleScroll = useAnimatedScrollHandler((event) => {
@@ -209,10 +212,8 @@ const MovieDetails = () => {
                 <Animated.View style={[{ backgroundColor: Colors.background }, imageAnimatedStyle]}>
                     {/* Backdrop Image */}
                     <Image
-                        source={{
-                            uri: `https://image.tmdb.org/t/p/original${data.backdrop_path}`,
-                        }}
-                        placeholder={require('@/assets/images/placeholder_img.jpg')}
+                        source={getTMDBImageSource(data.backdrop_path, 'w780')}
+                        // placeholder={require('@/assets/images/placeholder_img.jpg')}
                         style={{
                             width: '100%',
                             height: 224,
@@ -220,6 +221,8 @@ const MovieDetails = () => {
                         }}
                         contentFit="cover"
                         placeholderContentFit="cover"
+                        placeholder={getBlurHash(data.backdrop_path)}
+                        transition={BLURHASH_TRANSITION}
                     />
                     <LinearGradient
                         // Button Linear Gradient
@@ -246,10 +249,8 @@ const MovieDetails = () => {
                             elevation: 0,
                         }}>
                         <Image
-                            source={{
-                                uri: `https://image.tmdb.org/t/p/w500${data.poster_path}`,
-                            }}
-                            placeholder={require('@/assets/images/placeholder_img.jpg')}
+                            source={getTMDBImageSource(data.poster_path)}
+                            // placeholder={require('@/assets/images/placeholder_img.jpg')}
                             style={{
                                 position: 'absolute',
                                 left: 16,
@@ -260,6 +261,8 @@ const MovieDetails = () => {
                             }}
                             contentFit="cover"
                             placeholderContentFit="cover"
+                            placeholder={getBlurHash(data.poster_path)}
+                            transition={BLURHASH_TRANSITION}
                         />
                         {/* <LinearGradient
                             style={{
@@ -324,7 +327,33 @@ const MovieDetails = () => {
                         </View>
                     </View>
                 </Animated.View>
+
                 <View className="bg-[#121212] p-3">
+                    {/* Episode Guide */}
+                    {type === 'tv' && (
+                        <Pressable
+                            className={'flex-row items-center'}
+                            onPress={() =>
+                                router.push({
+                                    pathname: `/[type]/[id]/episode-guide`,
+                                    params: {
+                                        type,
+                                        id,
+                                        title: data.name,
+                                    },
+                                })
+                            }>
+                            <Text
+                                style={{
+                                    color: Colors.headingText,
+                                    fontWeight: '600',
+                                    fontSize: 18,
+                                }}>
+                                Episode Guide
+                            </Text>
+                            <Ionicons name="chevron-forward" size={24} color="white" />
+                        </Pressable>
+                    )}
                     {/* Overview */}
                     <View className="mt-4">
                         <Text className="text-xl font-semibold text-white">Overview</Text>
@@ -359,9 +388,7 @@ const MovieDetails = () => {
                                 <View key={company.id} className="mb-2 flex-row items-center">
                                     {company.logo_path && (
                                         <Image
-                                            source={{
-                                                uri: `https://image.tmdb.org/t/p/w500${company.logo_path}`,
-                                            }}
+                                            source={getTMDBImageSource(company.logo_path)}
                                             className="mr-4 h-12 w-12"
                                             contentFit="contain"
                                             tintColor={'#ffffff'}
@@ -411,8 +438,20 @@ const MovieDetails = () => {
                             showsHorizontalScrollIndicator={false}
                         />
                     </View>
+                    {/* Collections */}
+                    {movieCollectionSorted && movieCollectionSorted?.length > 0 && (
+                        <View className="pb-2">
+                            <HomeHorizontalList
+                                ListHeading={`Belongs to ${movieCollections?.name}`}
+                                // ListHeading={`More from ${movieCollections?.name}`}
+                                listType={type}
+                                listData={movieCollectionSorted}
+                                showMore={false}
+                            />
+                        </View>
+                    )}
                     {/* Similar */}
-                    {data?.similar?.results.length > 0 && (
+                    {data?.similar?.results?.length > 0 && (
                         <View className="pb-4 ">
                             <HomeHorizontalList
                                 ListHeading="More Like This"
@@ -458,4 +497,4 @@ const styles = StyleSheet.create({
     // },
 });
 
-export default MovieDetails;
+export default MediaDetailScreen;

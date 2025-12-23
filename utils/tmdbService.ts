@@ -1,7 +1,8 @@
-import { MovieResponse } from '@/models/MovieVM';
-import { MediaType, TVSeriesResponse } from '@/models/TVShowVM';
+import { MovieResponse, MovieVM, TmdbCollectionDetailVM } from '@/models/MovieVM';
+import { MediaType, TVSeriesResponse, TVShowVM } from '@/models/TVShowVM';
 import tmdbClient from './tmdbClient';
 import { TrendingResponseVM } from '@/models/TrendingItemVM';
+import { SeasonVM } from '@/models/SeasonVM';
 
 export const getDetails = async (type: MediaType, id: number) => {
     try {
@@ -27,6 +28,28 @@ export const fetchListData = async ({
             `${type}/${slug}?language=en-US&page=${pageParam}`,
         );
         return data?.results;
+    } catch (error) {
+        console.log(error);
+    }
+};
+
+export const getMovieCollection = async (collectionId: number) => {
+    try {
+        const data = await tmdbClient.get<TmdbCollectionDetailVM>(
+            `collection/${collectionId}?language=en-US`,
+        );
+        return data;
+    } catch (error) {
+        console.log(error);
+    }
+};
+
+export const fetchSeasonDetails = async (seriesId: number, seasonNumber: number) => {
+    try {
+        const data = await tmdbClient.get<SeasonVM>(
+            `tv/${seriesId}/season/${seasonNumber}?language=en-US`,
+        );
+        return data;
     } catch (error) {
         console.log(error);
     }

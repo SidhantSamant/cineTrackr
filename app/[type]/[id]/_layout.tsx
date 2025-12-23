@@ -1,34 +1,21 @@
 import { Colors } from '@/constants/Colors';
-import { router, Stack } from 'expo-router';
-import { HeaderRightIcon } from '../_layout';
+import Entypo from '@expo/vector-icons/Entypo';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { router, Stack } from 'expo-router';
 import { Pressable } from 'react-native';
 
-export default function HomeStackLayout() {
+export default function DetailStackLayout() {
     return (
-        <Stack
-            initialRouteName="home"
-            screenOptions={{
-                headerShadowVisible: false,
-                headerStyle: {
-                    backgroundColor: Colors.background,
-                },
-                headerTitleStyle: {
-                    color: Colors.headingText,
-                    fontWeight: 'bold',
-                    fontSize: 24,
-                },
-            }}>
+        <Stack>
             <Stack.Screen
-                name="home"
+                name="index"
                 options={{
-                    headerTitle: 'Cine Trackr',
-                    headerRight: () => <HeaderRightIcon addExtraMargin={false} />,
+                    headerTitle: '',
                 }}
             />
 
             <Stack.Screen
-                name="[type]"
+                name="episode-guide"
                 options={{
                     headerTitle: '',
                     headerTitleStyle: {

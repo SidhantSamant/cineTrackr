@@ -1,7 +1,8 @@
 import { MovieVM } from '@/models/MovieVM';
 import { MediaType, TVShowVM } from '@/models/TVShowVM';
+import { BLURHASH_TRANSITION, getBlurHash, getTMDBImageSource } from '@/utils/imgHelper';
 import { Image } from 'expo-image';
-import { Link } from 'expo-router';
+import { router } from 'expo-router';
 import { Pressable } from 'react-native';
 
 type MovieListItemProps = {
@@ -12,17 +13,18 @@ type MovieListItemProps = {
 
 const MovieListItem = ({ isGridView, data, type }: MovieListItemProps) => {
     return (
-        <Link href={`/${type}/${data?.id}`} asChild>
-            <Pressable style={{ width: isGridView ? '33%' : 100 }}>
-                <Image
-                    placeholder={require('@/assets/images/placeholder_img.jpg')}
-                    source={{ uri: `https://image.tmdb.org/t/p/w500${data?.poster_path}` }}
-                    style={{ width: '100%', aspectRatio: 3 / 5, borderRadius: 16 }}
-                    contentFit="cover"
-                    placeholderContentFit="cover"
-                />
-            </Pressable>
-        </Link>
+        <Pressable
+            style={{ width: isGridView ? '33%' : 100 }}
+            onPress={() => router.push(`/${type}/${data?.id}`)}>
+            <Image
+                source={getTMDBImageSource(data?.poster_path)}
+                style={{ width: '100%', aspectRatio: 3 / 5, borderRadius: 16 }}
+                contentFit="cover"
+                placeholderContentFit="cover"
+                placeholder={getBlurHash(data?.poster_path)}
+                transition={BLURHASH_TRANSITION}
+            />
+        </Pressable>
     );
 };
 

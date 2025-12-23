@@ -1,4 +1,10 @@
 import { TrendingItemVM } from '@/models/TrendingItemVM';
+import {
+    BLURHASH_TRANSITION,
+    getBlurHash,
+    getPlaceholderImage,
+    getTMDBImageSource,
+} from '@/utils/imgHelper';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -10,7 +16,7 @@ type TrendingListProps = {
 };
 
 type TrendingListItemProps = {
-    data?: TrendingItemVM;
+    data: TrendingItemVM;
 };
 
 const TrendingListItem = ({ data }: TrendingListItemProps) => {
@@ -24,13 +30,13 @@ const TrendingListItem = ({ data }: TrendingListItemProps) => {
             <Pressable style={{ width: 300 }}>
                 <View style={{ borderRadius: 16, overflow: 'hidden' }}>
                     <Image
-                        placeholder={require('@/assets/images/placeholder_img.jpg')}
-                        source={{ uri: `https://image.tmdb.org/t/p/w780${data?.backdrop_path}` }}
+                        source={getTMDBImageSource(data.backdrop_path, 'w780')}
                         style={{ width: '100%', aspectRatio: 5 / 3 }}
                         contentFit="cover"
                         placeholderContentFit="cover"
+                        placeholder={getBlurHash(data.backdrop_path)}
+                        transition={BLURHASH_TRANSITION}
                     />
-
                     {/* Bottom shadow */}
                     <LinearGradient
                         colors={['transparent', 'rgba(0,0,0,0.7)']}
