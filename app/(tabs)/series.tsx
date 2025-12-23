@@ -4,7 +4,7 @@ import { fetchListData } from '@/utils/tmdbService';
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import { ActivityIndicator, FlatList, Text, View } from 'react-native';
 
-export default function TVShowsScreen() {
+export default function TVSeriesScreen() {
     const queryClient = useQueryClient();
 
     const { data, isLoading, isFetchingNextPage, error, fetchNextPage, refetch } = useInfiniteQuery(
@@ -16,9 +16,14 @@ export default function TVShowsScreen() {
             gcTime: 0,
         },
     );
-    const tvshows = data?.pages.flat();
+    const tvSeries = data?.pages.flat();
+
     if (isLoading) {
-        return <ActivityIndicator />;
+        return (
+            <View className="flex-1 items-center justify-center bg-[#121212]">
+                <ActivityIndicator size="large" color={Colors.primary} />
+            </View>
+        );
     }
 
     if (error) {
@@ -27,7 +32,7 @@ export default function TVShowsScreen() {
     return (
         <View className="flex-1 pr-2" style={{ backgroundColor: Colors.background }}>
             <FlatList
-                data={tvshows}
+                data={tvSeries}
                 numColumns={3}
                 keyExtractor={(item, index) => index.toString()}
                 contentContainerStyle={{ gap: 8, padding: 8 }}

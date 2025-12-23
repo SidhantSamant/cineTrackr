@@ -1,7 +1,16 @@
+import HomeHorizontalList from '@/components/HomeHorizonalList';
 import { Colors } from '@/constants/Colors';
-import { MediaType } from '@/models/Show';
-import { getCast, getDetails } from '@/utils/tmdbService';
-import Entypo from '@expo/vector-icons/Entypo';
+import { CastVM } from '@/models/BaseMediaVM';
+import { MediaType } from '@/models/TVShowVM';
+import { getYouTubeKey } from '@/utils/detailHelper';
+import { getDetails } from '@/utils/tmdbService';
+import {
+    formatMovieRuntime,
+    formatTVSeasonsMeta,
+    formatTVYear,
+    getMovieYear,
+} from '@/utils/uiHelper';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useQuery } from '@tanstack/react-query';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -9,9 +18,12 @@ import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import {
     ActivityIndicator,
+    Alert,
     Dimensions,
     FlatList,
+    Linking,
     Pressable,
+    ScrollView,
     StyleSheet,
     Text,
     TouchableOpacity,
@@ -29,7 +41,7 @@ const { width } = Dimensions.get('window');
 const IMG_HEIGHT = 300;
 
 const renderCastItem = ({ item }: { item: any }) => (
-    <View className="mr-4 items-center">
+    <View className="my-2 mr-4 items-center">
         <Image
             source={
                 item.profile_path
@@ -42,14 +54,14 @@ const renderCastItem = ({ item }: { item: any }) => (
                 width: 96,
                 height: 96,
                 borderRadius: 99,
-                borderWidth: 2,
-                borderColor: 'white',
+                // borderWidth: 2,
+                // borderColor: 'white',
             }}
             contentFit="cover"
             placeholderContentFit="cover"
         />
 
-        <Text className="mt-2 text-sm text-white">{item.name}</Text>
+        <Text className="text-sm text-white">{item.name}</Text>
         <Text className="max-w-24 text-center text-xs text-gray-300" numberOfLines={1}>
             {item.character || item.job}
         </Text>
@@ -64,10 +76,10 @@ const MovieDetails = () => {
         queryFn: () => getDetails(type, +id),
     });
 
-    const { data: cast } = useQuery({
-        queryKey: [type, 'cast', id],
-        queryFn: () => getCast(type, +id),
-    });
+    // const { data: cast } = useQuery({
+    //     queryKey: [type, 'cast', id],
+    //     queryFn: () => getCast(type, +id),
+    // });
 
     const scrollOffset = useSharedValue(0);
     const handleScroll = useAnimatedScrollHandler((event) => {
@@ -103,6 +115,28 @@ const MovieDetails = () => {
         };
     });
 
+    const handleWatchTrailer = async () => {
+        // 1. Try to get the specific video key
+        const videoKey = getYouTubeKey(data?.videos?.results);
+
+        if (videoKey) {
+            // 2. Open directly in YouTube App or Browser
+            const url = `https://www.youtube.com/watch?v=${videoKey}`;
+            const supported = await Linking.canOpenURL(url);
+
+            if (supported) {
+                await Linking.openURL(url);
+            } else {
+                Alert.alert('Error', 'Cannot open YouTube');
+            }
+        } else {
+            // 3. FALLBACK: If no video key exists, Search for it
+            const query = `${data?.title} Trailer`;
+            const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
+            Linking.openURL(searchUrl);
+        }
+    };
+
     if (isLoading) {
         return (
             <View className="flex-1 items-center justify-center bg-[#121212]">
@@ -120,6 +154,14 @@ const MovieDetails = () => {
         );
     }
 
+    const meta = data
+        ? type === 'movie'
+            ? formatMovieRuntime(data)
+            : formatTVSeasonsMeta(data)
+        : '';
+
+    const formatedDate = data ? (type === 'movie' ? getMovieYear(data) : formatTVYear(data)) : '';
+
     return (
         <View className="flex-1 bg-[#121212]">
             <StatusBar style="auto" />
@@ -135,8 +177,7 @@ const MovieDetails = () => {
                                     color: 'white',
                                     fontWeight: '600',
                                     fontSize: 18,
-                                    marginEnd: 8,
-                                    marginStart: 8,
+                                    marginHorizontal: 8,
                                 },
                                 headerAnimatedStyle,
                             ]}>
@@ -151,7 +192,7 @@ const MovieDetails = () => {
                             onPress={router.back}
                             hitSlop={20}
                             style={{ backgroundColor: 'rgba(30, 30, 30, 0.5)' }}>
-                            <Entypo name="chevron-left" size={24} color="white" />
+                            <Ionicons name="chevron-back" size={24} color="white" />
                         </Pressable>
                     ),
                     headerBackground: () => (
@@ -163,8 +204,9 @@ const MovieDetails = () => {
                 className="flex-1 bg-[#121212]"
                 // ref={scrollRef}
                 onScroll={handleScroll}
+                showsVerticalScrollIndicator={false}
                 scrollEventThrottle={16}>
-                <Animated.View style={[{ backgroundColor: '#121212' }, imageAnimatedStyle]}>
+                <Animated.View style={[{ backgroundColor: Colors.background }, imageAnimatedStyle]}>
                     {/* Backdrop Image */}
                     <Image
                         source={{
@@ -188,7 +230,7 @@ const MovieDetails = () => {
                             top: 0,
                             left: 0,
                         }}
-                        colors={['transparent', 'transparent', '#121212']}
+                        colors={['transparent', 'transparent', Colors.background]}
                     />
                     {/* Movie Poster */}
                     <View
@@ -219,7 +261,7 @@ const MovieDetails = () => {
                             contentFit="cover"
                             placeholderContentFit="cover"
                         />
-                        <LinearGradient
+                        {/* <LinearGradient
                             style={{
                                 position: 'absolute',
                                 left: 16,
@@ -228,42 +270,63 @@ const MovieDetails = () => {
                                 width: 98,
                                 borderRadius: 8,
                             }}
-                            colors={['transparent', 'transparent', '#121212']}
-                        />
+                            colors={['transparent', 'transparent', Colors.background]}
+                        /> */}
                     </View>
                     {/* Title & Rating */}
-                    <View className="ml-36 mt-2">
+                    <View className="ml-36">
                         <Text className="text-2xl font-bold text-white">
                             {type === 'movie' ? data.title : data.name}
                         </Text>
-                        <View className="mt-2 flex-row items-center">
-                            <Text className="text-lg font-semibold text-yellow-400 ">
+                        <View className="mt-1 flex-row items-center">
+                            <Ionicons name="star" size={14} color="#facc15" />
+
+                            <Text className="ml-0.5 text-lg font-semibold text-yellow-400 ">
                                 {data.vote_average.toFixed(1)}
                             </Text>
-                            <Text className="ml-2 text-xl font-semibold text-gray-400">/ 10</Text>
+                            <Text className="font-semibolde mx-4 text-lg text-white">
+                                {formatedDate}
+                            </Text>
+                            <Text className="font-semibolde text-lg text-white">
+                                {type === 'movie' ? meta : ''}
+                            </Text>
                         </View>
+                        <Text className="text-lg text-white">{type !== 'movie' ? meta : ''}</Text>
                     </View>
                     {/* Action Buttons */}
-                    <View className="mt-8 flex-row justify-around">
-                        <TouchableOpacity
-                            className="rounded-full bg-gray-700 px-4 py-2"
-                            onPress={() => console.log('Play Movie')}>
-                            <Text className="text-lg font-semibold text-white">
-                                Already Watched
-                            </Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            className="rounded-full bg-gray-700 px-4 py-2"
-                            onPress={() => console.log('Add to Watchlist')}>
-                            <Text className="text-lg font-semibold text-white">
-                                Add to Watchlist
-                            </Text>
-                        </TouchableOpacity>
+                    <View className="mt-6 flex-1 flex-row items-center justify-evenly gap-2">
+                        <View className="items-center">
+                            <Pressable
+                                className="rounded-full bg-white/10 p-3 active:bg-orange-300/30"
+                                onPress={handleWatchTrailer}
+                                hitSlop={8}>
+                                <Ionicons name="play" size={20} color="white" />
+                            </Pressable>
+                            <Text className="mt-2 text-xs text-white">Watch Trailer</Text>
+                        </View>
+                        <View className="items-center">
+                            <Pressable
+                                className="rounded-full bg-white/10 p-3 active:bg-orange-300/30"
+                                onPress={() => console.log('Add to Watchlist')}
+                                hitSlop={8}>
+                                <Ionicons name="bookmark-outline" size={20} color="white" />
+                            </Pressable>
+                            <Text className="mt-2 text-xs text-white">Add to Watchlist</Text>
+                        </View>
+                        <View className="items-center">
+                            <Pressable
+                                className="rounded-full bg-white/10 p-3 active:bg-orange-300/30"
+                                onPress={() => console.log('Mark as Watched')}
+                                hitSlop={8}>
+                                <Ionicons name="checkmark" size={20} color="white" />
+                            </Pressable>
+                            <Text className="mt-2 text-xs text-white">Mark as Watched</Text>
+                        </View>
                     </View>
                 </Animated.View>
                 <View className="bg-[#121212] p-3">
                     {/* Overview */}
-                    <View className="mt-6">
+                    <View className="mt-4">
                         <Text className="text-xl font-semibold text-white">Overview</Text>
                         <Text className="mt-2 text-lg text-gray-300">{data.overview}</Text>
                     </View>
@@ -271,7 +334,11 @@ const MovieDetails = () => {
                     {/* Genres */}
                     <View className="mt-6">
                         <Text className="text-xl font-semibold text-white">Genres</Text>
-                        <View className="mt-3 flex-row flex-wrap">
+
+                        <ScrollView
+                            className="mt-3 flex-row flex-wrap"
+                            horizontal
+                            showsHorizontalScrollIndicator={false}>
                             {data.genres.map((genre: any) => (
                                 <TouchableOpacity
                                     key={genre.id}
@@ -279,7 +346,7 @@ const MovieDetails = () => {
                                     <Text className="text-sm text-white">{genre.name}</Text>
                                 </TouchableOpacity>
                             ))}
-                        </View>
+                        </ScrollView>
                     </View>
 
                     {/* Production Companies */}
@@ -333,17 +400,28 @@ const MovieDetails = () => {
                             </Text>
                         )}
                     </View>
-                    {/* Cast and Crew */}
+                    {/* Cast */}
                     <View className="mt-6">
-                        <Text className="text-xl font-semibold text-white">Cast & Crew</Text>
-                        <FlatList
-                            data={cast}
+                        <Text className="text-xl font-semibold text-white">Top Cast</Text>
+                        <FlatList<CastVM>
+                            data={data?.credits?.cast?.slice(0, 10)}
                             renderItem={renderCastItem}
-                            keyExtractor={(item, index) => index.toString()}
+                            keyExtractor={(item, index) => item.id.toString()}
                             horizontal
                             showsHorizontalScrollIndicator={false}
                         />
                     </View>
+                    {/* Similar */}
+                    {data?.similar?.results.length > 0 && (
+                        <View className="pb-4 ">
+                            <HomeHorizontalList
+                                ListHeading="More Like This"
+                                listType={type}
+                                listData={data?.similar?.results}
+                                showMore={false}
+                            />
+                        </View>
+                    )}
                 </View>
             </Animated.ScrollView>
         </View>
@@ -359,7 +437,7 @@ const styles = StyleSheet.create({
         height: IMG_HEIGHT,
     },
     header: {
-        backgroundColor: '#121212',
+        backgroundColor: Colors.background,
         color: 'white',
         height: 100,
         borderWidth: StyleSheet.hairlineWidth,

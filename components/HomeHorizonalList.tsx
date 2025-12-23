@@ -1,6 +1,6 @@
 import { Colors } from '@/constants/Colors';
-import { Movie } from '@/models/Movie';
-import { MediaType, TVShow } from '@/models/Show';
+import { MovieVM } from '@/models/MovieVM';
+import { MediaType, TVShowVM } from '@/models/TVShowVM';
 import { getCategorySlug, SectionHeadings } from '@/utils/dashBoardHelper';
 import Entypo from '@expo/vector-icons/Entypo';
 import { router } from 'expo-router';
@@ -10,22 +10,30 @@ import MovieListItem from './MovieListItem';
 type HomeListProps = {
     ListHeading: string;
     listType: MediaType;
-    listData: (Movie | undefined)[] | (TVShow | undefined)[] | undefined;
+    listData: (MovieVM | undefined)[] | (TVShowVM | undefined)[] | undefined;
+    showMore?: boolean;
 };
 
-export default function HomeHorizontalList({ ListHeading, listType, listData }: HomeListProps) {
+export default function HomeHorizontalList({
+    ListHeading,
+    listType,
+    listData,
+    showMore = true,
+}: HomeListProps) {
     return (
         <View>
             <Pressable
-                className={'flex-row items-center px-4 pb-2 pt-6'}
+                className={'flex-row items-center pb-2 pt-6'}
                 onPress={() =>
-                    router.push({
-                        pathname: `/${listType}`,
-                        params: {
-                            slug: getCategorySlug(ListHeading as SectionHeadings),
-                            title: ListHeading,
-                        },
-                    })
+                    showMore
+                        ? router.push({
+                              pathname: `/${listType}`,
+                              params: {
+                                  slug: getCategorySlug(ListHeading as SectionHeadings),
+                                  title: ListHeading,
+                              },
+                          })
+                        : null
                 }>
                 <Text
                     style={{
@@ -35,16 +43,16 @@ export default function HomeHorizontalList({ ListHeading, listType, listData }: 
                     }}>
                     {ListHeading}
                 </Text>
-                <Entypo name="chevron-right" size={24} color="white" />
+                {showMore && <Entypo name="chevron-right" size={24} color="white" />}
             </Pressable>
 
-            <FlatList<Movie | TVShow>
+            <FlatList<MovieVM | TVShowVM>
                 data={listData as any[]}
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 keyExtractor={(item) => item.id.toString()}
                 contentContainerStyle={{
-                    paddingHorizontal: 8,
+                    // paddingHorizontal: 8,
                     gap: 8,
                 }}
                 renderItem={({ item }) => (

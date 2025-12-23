@@ -9,7 +9,7 @@ export default function HomeStackLayout() {
             screenOptions={{
                 headerShadowVisible: false,
                 headerStyle: {
-                    backgroundColor: '#121212',
+                    backgroundColor: Colors.background,
                 },
                 headerTitleStyle: {
                     color: Colors.headingText,

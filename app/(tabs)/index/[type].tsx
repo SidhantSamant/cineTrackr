@@ -1,8 +1,8 @@
 import MovieListItem from '@/components/MovieListItem';
 import { Colors } from '@/constants/Colors';
-import { MediaType } from '@/models/Show';
+import { MediaType } from '@/models/TVShowVM';
 import { fetchListData } from '@/utils/tmdbService';
-import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery } from '@tanstack/react-query';
 import { useLocalSearchParams, useNavigation } from 'expo-router';
 import { useLayoutEffect } from 'react';
 import { ActivityIndicator, FlatList, Text, View } from 'react-native';
@@ -34,7 +34,11 @@ export default function MoviesScreen() {
     const listData = data?.pages.flat();
 
     if (isLoading) {
-        return <ActivityIndicator />;
+        return (
+            <View className="flex-1 items-center justify-center bg-[#121212]">
+                <ActivityIndicator size="large" color={Colors.primary} />
+            </View>
+        );
     }
 
     if (error) {
@@ -56,9 +60,7 @@ export default function MoviesScreen() {
                     fetchNextPage();
                 }}
                 refreshing={isLoading && isFetchingNextPage}
-                onRefresh={() => {
-                    refetch();
-                }}
+                onRefresh={refetch}
                 ListFooterComponent={() =>
                     isFetchingNextPage && (
                         <View>

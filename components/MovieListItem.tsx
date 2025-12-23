@@ -1,11 +1,11 @@
-import { Movie } from '@/models/Movie';
-import { MediaType, TVShow } from '@/models/Show';
+import { MovieVM } from '@/models/MovieVM';
+import { MediaType, TVShowVM } from '@/models/TVShowVM';
 import { Image } from 'expo-image';
 import { Link } from 'expo-router';
 import { Pressable } from 'react-native';
 
 type MovieListItemProps = {
-    data?: Movie | TVShow;
+    data?: MovieVM | TVShowVM;
     isGridView: boolean;
     type: MediaType;
 };

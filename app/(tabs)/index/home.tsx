@@ -47,8 +47,8 @@ export default function HomeScreen() {
             }),
     });
 
-    const { data: topRatedTVShows, isLoading: isLoadingTopRatedTVShows } = useQuery({
-        queryKey: ['TopRatedTVShows'],
+    const { data: topRatedTVSeries, isLoading: isLoadingTopRatedTVSeries } = useQuery({
+        queryKey: ['TopRatedTVSeries'],
         queryFn: () =>
             fetchListData({
                 pageParam: 1,
@@ -57,8 +57,8 @@ export default function HomeScreen() {
             }),
     });
 
-    const { data: popularTVShows, isLoading: isLoadingPopularTVShows } = useQuery({
-        queryKey: ['PopularTVShows'],
+    const { data: popularTVSeries, isLoading: isLoadingPopularTVSeries } = useQuery({
+        queryKey: ['PopularTVSeries'],
         queryFn: () =>
             fetchListData({
                 pageParam: 1,
@@ -66,8 +66,8 @@ export default function HomeScreen() {
                 slug: getCategorySlug(SectionHeadings.PopularTV),
             }),
     });
-    const { data: onTheAirTVShows, isLoading: isLoadingOnTheAirTVShows } = useQuery({
-        queryKey: ['OnTheAirTVShows'],
+    const { data: onTheAirTVSeries, isLoading: isLoadingOnTheAirTVSeries } = useQuery({
+        queryKey: ['OnTheAirTVSeries'],
         queryFn: () =>
             fetchListData({
                 pageParam: 1,
@@ -76,8 +76,8 @@ export default function HomeScreen() {
             }),
     });
 
-    const { data: airingTodayTVShows, isLoading: isLoadingAiringTodayTVShows } = useQuery({
-        queryKey: ['AiringTodayTVShows'],
+    const { data: airingTodayTVSeries, isLoading: isLoadingAiringTodayTVSeries } = useQuery({
+        queryKey: ['AiringTodayTVSeries'],
         queryFn: () =>
             fetchListData({
                 pageParam: 1,
@@ -96,11 +96,11 @@ export default function HomeScreen() {
         isLoadingUpcomingMovies ||
         isLoadingPopularMovies ||
         isLoadingNowPlayingMovies ||
-        isLoadingTopRatedTVShows ||
-        isLoadingPopularTVShows ||
-        isLoadingOnTheAirTVShows ||
+        isLoadingTopRatedTVSeries ||
+        isLoadingPopularTVSeries ||
+        isLoadingOnTheAirTVSeries ||
         isLoadingTrendingList ||
-        isLoadingAiringTodayTVShows;
+        isLoadingAiringTodayTVSeries;
 
     if (isLoading) {
         return (
@@ -115,7 +115,7 @@ export default function HomeScreen() {
     // }
     return (
         <View className="flex-1" style={{ backgroundColor: Colors.background }}>
-            <ScrollView showsVerticalScrollIndicator={false}>
+            <ScrollView showsVerticalScrollIndicator={false} className={'px-3'}>
                 {/* Trending */}
                 <TrendingList listData={trendingList} />
 
@@ -141,26 +141,26 @@ export default function HomeScreen() {
                     listData={upcomingMovies}
                 />
 
-                {/* TV Shows */}
+                {/* TV Series */}
                 <HomeHorizontalList
                     ListHeading={SectionHeadings.AiringTodayTV}
                     listType="tv"
-                    listData={airingTodayTVShows}
+                    listData={airingTodayTVSeries}
                 />
                 <HomeHorizontalList
                     ListHeading={SectionHeadings.PopularTV}
                     listType="tv"
-                    listData={popularTVShows}
+                    listData={popularTVSeries}
                 />
                 <HomeHorizontalList
                     ListHeading={SectionHeadings.TopRatedTV}
                     listType="tv"
-                    listData={topRatedTVShows}
+                    listData={topRatedTVSeries}
                 />
                 <HomeHorizontalList
                     ListHeading={SectionHeadings.OnTheAirTV}
                     listType="tv"
-                    listData={onTheAirTVShows}
+                    listData={onTheAirTVSeries}
                 />
                 <View className="h-4"></View>
             </ScrollView>

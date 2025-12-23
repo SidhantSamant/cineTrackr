@@ -49,7 +49,7 @@ export default function TabLayout() {
                     marginBottom: 4,
                 },
                 headerStyle: {
-                    backgroundColor: '#121212',
+                    backgroundColor: Colors.background,
                     shadowColor: 'transparent',
                     elevation: 0,
                     borderBottomWidth: 0,
@@ -94,7 +94,7 @@ export default function TabLayout() {
             <Tabs.Screen
                 name="series"
                 options={{
-                    title: 'TV Shows',
+                    title: 'TV Series',
                     tabBarIcon: ({ color, size, focused }) => (
                         <Ionicons name={focused ? 'tv' : 'tv-outline'} size={size} color={color} />
                     ),

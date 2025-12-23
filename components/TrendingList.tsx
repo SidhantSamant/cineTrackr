@@ -1,4 +1,4 @@
-import { TrendingItem } from '@/models/TrendingItem';
+import { TrendingItemVM } from '@/models/TrendingItemVM';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -6,11 +6,11 @@ import { Link } from 'expo-router';
 import { FlatList, Pressable, View, Text } from 'react-native';
 
 type TrendingListProps = {
-    listData: (TrendingItem | undefined)[] | undefined;
+    listData: (TrendingItemVM | undefined)[] | undefined;
 };
 
 type TrendingListItemProps = {
-    data?: TrendingItem;
+    data?: TrendingItemVM;
 };
 
 const TrendingListItem = ({ data }: TrendingListItemProps) => {
@@ -75,13 +75,13 @@ const TrendingListItem = ({ data }: TrendingListItemProps) => {
 export default function TrendingList({ listData }: TrendingListProps) {
     return (
         <View className="pt-2">
-            <FlatList<TrendingItem>
+            <FlatList<TrendingItemVM>
                 data={listData as any[]}
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 keyExtractor={(item) => item.id.toString()}
                 contentContainerStyle={{
-                    paddingHorizontal: 8,
+                    // paddingHorizontal: 8,
                     gap: 8,
                 }}
                 renderItem={({ item }) => <TrendingListItem data={item} />}
