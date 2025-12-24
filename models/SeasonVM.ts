@@ -9,6 +9,7 @@ export interface SeasonVM {
     poster_path: string | null;
     season_number: number;
     vote_average: number;
+    episode_count: number;
     episodes: EpisodeVM[];
     networks: NetworkVM[];
 }

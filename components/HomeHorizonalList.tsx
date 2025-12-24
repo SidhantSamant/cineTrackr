@@ -27,9 +27,8 @@ export default function HomeHorizontalList({
                 onPress={() =>
                     showMore
                         ? router.push({
-                              pathname: `/index/[type]`,
+                              pathname: `/${listType}`,
                               params: {
-                                  type: listType,
                                   slug: getCategorySlug(ListHeading as SectionHeadings),
                                   title: ListHeading,
                               },

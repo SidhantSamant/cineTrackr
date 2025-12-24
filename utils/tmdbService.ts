@@ -7,7 +7,8 @@ import { SeasonVM } from '@/models/SeasonVM';
 export const getDetails = async (type: MediaType, id: number) => {
     try {
         return await tmdbClient.get<any>(
-            `${type}/${id}?append_to_response=videos,similar,credits&language=en-US`,
+            // `${type}/${id}?append_to_response=videos,similar,credits&language=en-US`,
+            `${type}/${id}?append_to_response=videos,recommendations,credits&language=en-US`,
         );
     } catch (error) {
         console.log(error);
