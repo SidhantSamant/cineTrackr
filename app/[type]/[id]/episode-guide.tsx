@@ -1,32 +1,35 @@
-import MovieListItem from '@/components/MovieListItem';
+import SeasonAccordionItem from '@/components/SeasonAccordionItem';
 import { Colors } from '@/constants/Colors';
+import { SeasonVM } from '@/models/SeasonVM';
 import { MediaType } from '@/models/TVShowVM';
-import { fetchListData, fetchSeasonDetails } from '@/utils/tmdbService';
-import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import { getDetails } from '@/utils/tmdbService';
+import { useQuery } from '@tanstack/react-query';
 import { useLocalSearchParams, useNavigation } from 'expo-router';
-import { useLayoutEffect, useState } from 'react';
+import { useCallback, useLayoutEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, Text, View } from 'react-native';
 
 export default function MoviesScreen() {
     const navigation = useNavigation();
-    const { id, title, totalSeasons } = useLocalSearchParams<{
+    const { id, title, type } = useLocalSearchParams<{
         id: string;
         title: string;
-        totalSeasons: string;
+        type: MediaType;
     }>();
     const [seleactedSeason, setSelectedSeason] = useState(0);
 
     useLayoutEffect(() => {
         navigation.setOptions({
-            headerTitle: title,
+            // headerTitle: title,
+            headerTitle: 'Episode Guide',
         });
     }, [navigation, title]);
 
     const { data, isLoading, error } = useQuery({
-        queryKey: [id, seleactedSeason],
-        queryFn: () => fetchSeasonDetails(+id, seleactedSeason),
-        enabled: seleactedSeason > 0,
+        queryKey: [type, id],
+        queryFn: () => getDetails(type, +id),
     });
+
+    const seasons = data?.seasons?.filter((s: { season_number: number }) => s.season_number > 0);
 
     if (isLoading) {
         return (
@@ -37,19 +40,33 @@ export default function MoviesScreen() {
     }
 
     if (error) {
-        return <Text>{error.message}</Text>;
+        return <Text>Something went wrong</Text>;
     }
+
+    const handleToggle = (seasonNum: number) => {
+        setSelectedSeason((prev) => (prev === seasonNum ? 0 : seasonNum));
+    };
+
+    const renderItem = useCallback(
+        ({ item }: { item: SeasonVM }) => (
+            <SeasonAccordionItem
+                tvShowId={+id}
+                seasonSummary={item}
+                // isExpanded={seleactedSeason === item.season_number}
+                // onToggle={() => handleToggle(item.season_number)}
+            />
+        ),
+        [id, seleactedSeason, handleToggle],
+    );
 
     return (
         <View className="flex-1 p-3" style={{ backgroundColor: Colors.background }}>
-            <Text
-                style={{
-                    color: Colors.headingText,
-                    fontWeight: '600',
-                    fontSize: 18,
-                }}>
-                Episode Guide
-            </Text>
+            <FlatList
+                data={seasons}
+                keyExtractor={(item) => item.id.toString()}
+                renderItem={renderItem}
+                showsVerticalScrollIndicator={false}
+            />
         </View>
     );
 }

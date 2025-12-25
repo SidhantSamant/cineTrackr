@@ -103,3 +103,9 @@ export function formatTVSeasonsMeta(tv: {
 
     return parts.join(' • ');
 }
+
+export const getRatingColor = (voteAverage: number): string => {
+    if (voteAverage >= 7) return '#22c55e'; // Green-500
+    if (voteAverage >= 5) return '#eab308'; // Yellow-500
+    return '#ef4444'; // Red-500
+};

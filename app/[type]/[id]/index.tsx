@@ -1,3 +1,5 @@
+import ActionButton from '@/components/ActionButton';
+import CastItem from '@/components/CastItem';
 import HomeHorizontalList from '@/components/HomeHorizonalList';
 import { Colors } from '@/constants/Colors';
 import { CastVM } from '@/models/BaseMediaVM';
@@ -10,6 +12,7 @@ import {
     formatTVSeasonsMeta,
     formatTVYear,
     getMovieYear,
+    getRatingColor,
 } from '@/utils/uiHelper';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useQuery } from '@tanstack/react-query';
@@ -17,17 +20,16 @@ import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { useCallback, useMemo } from 'react';
 import {
     ActivityIndicator,
     Alert,
-    Dimensions,
     FlatList,
     Linking,
     Pressable,
     ScrollView,
     StyleSheet,
     Text,
-    TouchableOpacity,
     View,
 } from 'react-native';
 import Animated, {
@@ -38,109 +40,91 @@ import Animated, {
     useSharedValue,
 } from 'react-native-reanimated';
 
-const { width } = Dimensions.get('window');
-const IMG_HEIGHT = 300;
-
-const renderCastItem = ({ item }: { item: CastVM }) => (
-    <View className="my-2 mr-4 items-center">
-        <Image
-            source={getTMDBImageSource(item.profile_path, 'w185', 'profile')}
-            style={{
-                width: 96,
-                height: 96,
-                borderRadius: 99,
-                // borderWidth: 2,
-                // borderColor: 'white',
-            }}
-            placeholder={getBlurHash(item.profile_path)}
-            transition={BLURHASH_TRANSITION}
-            contentFit="cover"
-            placeholderContentFit="cover"
-        />
-
-        <Text className="text-sm text-white">{item.name}</Text>
-        <Text className="max-w-24 text-center text-xs text-gray-300" numberOfLines={1}>
-            {item.character}
-        </Text>
-    </View>
-);
+// CONSTANTS
+const IMG_HEIGHT = 200;
+const HEADER_HEIGHT = 100;
 
 const MediaDetailScreen = () => {
     const { id, type } = useLocalSearchParams<{ id: string; type: MediaType }>();
 
+    // Queries
     const { data, isLoading, error } = useQuery({
         queryKey: [type, id],
         queryFn: () => getDetails(type, +id),
     });
-    const { data: movieCollections } = useQuery({
+
+    const {
+        data: movieCollections,
+        isLoading: isLoadingCollections,
+        error: errorCollections,
+    } = useQuery({
         queryKey: [type, 'collections', id],
         queryFn: () => getMovieCollection(data?.belongs_to_collection?.id),
         enabled: !!data?.belongs_to_collection?.id,
     });
 
-    const movieCollectionSorted = movieCollections
-        ? [...movieCollections?.parts].sort((a, b) => {
-              return new Date(a.release_date).getTime() - new Date(b.release_date).getTime();
-          })
-        : undefined;
+    const movieCollectionSorted = useMemo(() => {
+        if (!movieCollections?.parts) return undefined;
+        return [...movieCollections.parts].sort((a, b) => {
+            const dateA = a.release_date ? new Date(a.release_date).getTime() : 0;
+            const dateB = b.release_date ? new Date(b.release_date).getTime() : 0;
+            return dateA - dateB;
+        });
+    }, [movieCollections]);
 
+    // Animations
     const scrollOffset = useSharedValue(0);
     const handleScroll = useAnimatedScrollHandler((event) => {
         scrollOffset.value = event.contentOffset.y;
     });
 
-    const imageAnimatedStyle = useAnimatedStyle(() => {
-        return {
-            transform: [
-                {
-                    translateY: interpolate(
-                        scrollOffset.value,
-                        [-IMG_HEIGHT, 0, IMG_HEIGHT],
-                        [-IMG_HEIGHT / 2, 0, IMG_HEIGHT * 0.75],
-                        Extrapolation.CLAMP,
-                    ),
-                },
-                {
-                    scale: interpolate(scrollOffset.value, [-IMG_HEIGHT, 0, IMG_HEIGHT], [2, 1, 1]),
-                },
-            ],
-        };
-    });
+    const imageAnimatedStyle = useAnimatedStyle(() => ({
+        transform: [
+            {
+                translateY: interpolate(
+                    scrollOffset.value,
+                    [-IMG_HEIGHT, 0, IMG_HEIGHT],
+                    [-IMG_HEIGHT * 0.5, 0, IMG_HEIGHT * 0.5],
+                    Extrapolation.CLAMP,
+                ),
+            },
+            {
+                scale: interpolate(
+                    scrollOffset.value,
+                    [-IMG_HEIGHT, 0],
+                    [2, 1],
+                    Extrapolation.CLAMP,
+                ),
+            },
+        ],
+    }));
 
-    const headerAnimatedStyle = useAnimatedStyle(() => {
-        return {
-            opacity: interpolate(
-                scrollOffset.value,
-                [0, IMG_HEIGHT / 1.5],
-                [0, 1],
-                Extrapolation.CLAMP,
-            ),
-        };
-    });
+    const headerAnimatedStyle = useAnimatedStyle(() => ({
+        opacity: interpolate(
+            scrollOffset.value,
+            [IMG_HEIGHT - HEADER_HEIGHT - 40, IMG_HEIGHT - HEADER_HEIGHT],
+            [0, 1],
+            Extrapolation.CLAMP,
+        ),
+    }));
 
-    const handleWatchTrailer = async () => {
-        // 1. Try to get the specific video key
+    // Handlers
+    const handleWatchTrailer = useCallback(async () => {
         const videoKey = getYouTubeKey(data?.videos?.results);
+        const query = `${data?.title ?? data?.name ?? ''} Trailer`;
 
-        if (videoKey) {
-            // 2. Open directly in YouTube App or Browser
-            const url = `https://www.youtube.com/watch?v=${videoKey}`;
-            const supported = await Linking.canOpenURL(url);
+        try {
+            const url = videoKey
+                ? `https://www.youtube.com/watch?v=${videoKey}`
+                : `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
 
-            if (supported) {
-                await Linking.openURL(url);
-            } else {
-                Alert.alert('Error', 'Cannot open YouTube');
-            }
-        } else {
-            // 3. FALLBACK: If no video key exists, Search for it
-            const query = `${data?.title} Trailer`;
-            const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
-            Linking.openURL(searchUrl);
+            await Linking.openURL(url);
+        } catch (err) {
+            Alert.alert('Error', 'Could not open video link');
         }
-    };
+    }, [data]);
 
-    if (isLoading) {
+    if (isLoading || isLoadingCollections) {
         return (
             <View className="flex-1 items-center justify-center bg-[#121212]">
                 <ActivityIndicator size="large" color={Colors.primary} />
@@ -148,53 +132,46 @@ const MediaDetailScreen = () => {
         );
     }
 
-    // Error state
-    if (error) {
+    if (error || errorCollections || !data) {
         return (
             <View className="flex-1 items-center justify-center bg-[#121212]">
-                <Text className="text-white">No details found or an error occurred</Text>
+                <Text className="text-lg font-medium text-white">Content not found</Text>
+                <Pressable
+                    onPress={router.back}
+                    className="mt-4 rounded-full bg-white/10 px-6 py-2">
+                    <Text className="text-white">Go Back</Text>
+                </Pressable>
             </View>
         );
     }
 
-    const meta = data
-        ? type === 'movie'
-            ? formatMovieRuntime(data)
-            : formatTVSeasonsMeta(data)
-        : '';
+    // Formatting
+    const meta = type === 'movie' ? '•   ' + formatMovieRuntime(data) : formatTVSeasonsMeta(data);
+    const formattedDate = type === 'movie' ? getMovieYear(data) : formatTVYear(data);
+    const title = type === 'movie' ? data.title : data.name;
 
-    const formatedDate = data ? (type === 'movie' ? getMovieYear(data) : formatTVYear(data)) : '';
+    const ratingColor = getRatingColor(data.vote_average);
 
     return (
         <View className="flex-1 bg-[#121212]">
-            <StatusBar style="auto" />
+            <StatusBar style="light" />
 
             <Stack.Screen
                 options={{
                     headerTitle: () => (
                         <Animated.Text
                             numberOfLines={1}
-                            style={[
-                                {
-                                    textAlign: 'center',
-                                    color: 'white',
-                                    fontWeight: '600',
-                                    fontSize: 18,
-                                    marginHorizontal: 8,
-                                },
-                                headerAnimatedStyle,
-                            ]}>
-                            {type === 'movie' ? data.title : data.name}
+                            style={[styles.headerTitle, headerAnimatedStyle]}>
+                            {title}
                         </Animated.Text>
                     ),
                     headerTitleAlign: 'center',
                     headerTransparent: true,
                     headerLeft: () => (
                         <Pressable
-                            className="rounded-full p-2"
+                            className="rounded-full bg-black/40 p-2 active:bg-black/60"
                             onPress={router.back}
-                            hitSlop={20}
-                            style={{ backgroundColor: 'rgba(30, 30, 30, 0.5)' }}>
+                            hitSlop={20}>
                             <Ionicons name="chevron-back" size={24} color="white" />
                         </Pressable>
                     ),
@@ -203,298 +180,231 @@ const MediaDetailScreen = () => {
                     ),
                 }}
             />
+
             <Animated.ScrollView
                 className="flex-1 bg-[#121212]"
-                // ref={scrollRef}
                 onScroll={handleScroll}
                 showsVerticalScrollIndicator={false}
-                scrollEventThrottle={16}>
-                <Animated.View style={[{ backgroundColor: Colors.background }, imageAnimatedStyle]}>
-                    {/* Backdrop Image */}
-                    <Image
-                        source={getTMDBImageSource(data.backdrop_path, 'w780')}
-                        // placeholder={require('@/assets/images/placeholder_img.jpg')}
-                        style={{
-                            width: '100%',
-                            height: 224,
-                            marginBottom: 8,
-                        }}
-                        contentFit="cover"
-                        placeholderContentFit="cover"
-                        placeholder={getBlurHash(data.backdrop_path)}
-                        transition={BLURHASH_TRANSITION}
-                    />
-                    <LinearGradient
-                        // Button Linear Gradient
-                        style={{
-                            width: '100%',
-                            height: 224,
-                            position: 'absolute',
-                            top: 0,
-                            left: 0,
-                        }}
-                        colors={['transparent', 'transparent', Colors.background]}
-                    />
-                    {/* Movie Poster */}
-                    <View
-                        className="relative"
-                        style={{
-                            shadowColor: '#000000',
-                            shadowOffset: {
-                                width: 1,
-                                height: 0,
-                            },
-                            shadowOpacity: 0,
-                            shadowRadius: 15,
-                            elevation: 0,
-                        }}>
-                        <Image
-                            source={getTMDBImageSource(data.poster_path)}
-                            // placeholder={require('@/assets/images/placeholder_img.jpg')}
-                            style={{
-                                position: 'absolute',
-                                left: 16,
-                                top: -64,
-                                height: 152,
-                                width: 98,
-                                borderRadius: 8,
-                            }}
-                            contentFit="cover"
-                            placeholderContentFit="cover"
-                            placeholder={getBlurHash(data.poster_path)}
-                            transition={BLURHASH_TRANSITION}
-                        />
-                        {/* <LinearGradient
-                            style={{
-                                position: 'absolute',
-                                left: 16,
-                                top: -64,
-                                height: 152,
-                                width: 98,
-                                borderRadius: 8,
-                            }}
-                            colors={['transparent', 'transparent', Colors.background]}
-                        /> */}
+                scrollEventThrottle={16}
+                overScrollMode="never">
+                <View style={{ backgroundColor: Colors.background }}>
+                    {/* Animated Image Container */}
+                    <View style={{ height: IMG_HEIGHT, width: '100%', overflow: 'hidden' }}>
+                        <Animated.View style={[StyleSheet.absoluteFill, imageAnimatedStyle]}>
+                            <Image
+                                source={getTMDBImageSource(data.backdrop_path, 'w780')}
+                                style={{ width: '100%', height: '100%' }}
+                                contentFit="cover"
+                                transition={BLURHASH_TRANSITION}
+                                placeholder={getBlurHash(data.backdrop_path)}
+                                priority="high"
+                            />
+                            <LinearGradient
+                                style={StyleSheet.absoluteFill}
+                                colors={[
+                                    'transparent',
+                                    'rgba(18,18,18,0.0)',
+                                    'rgba(18,18,18,0.4)',
+                                    Colors.background,
+                                ]}
+                                locations={[0, 0.4, 0.7, 1]}
+                            />
+                        </Animated.View>
                     </View>
-                    {/* Title & Rating */}
-                    <View className="ml-36">
-                        <Text className="text-2xl font-bold text-white">
-                            {type === 'movie' ? data.title : data.name}
-                        </Text>
-                        <View className="mt-1 flex-row items-center">
-                            <Ionicons name="star" size={14} color="#facc15" />
 
-                            <Text className="ml-0.5 text-lg font-semibold text-yellow-400 ">
-                                {data.vote_average.toFixed(1)}
-                            </Text>
-                            <Text className="font-semibolde mx-4 text-lg text-white">
-                                {formatedDate}
-                            </Text>
-                            <Text className="font-semibolde text-lg text-white">
-                                {type === 'movie' ? meta : ''}
-                            </Text>
+                    <View className="px-4" style={{ marginTop: -64 }}>
+                        <View className="flex-row">
+                            {/* Poster */}
+                            <Image
+                                source={getTMDBImageSource(data.poster_path)}
+                                style={styles.posterImage}
+                                contentFit="cover"
+                                placeholder={getBlurHash(data.poster_path)}
+                                transition={BLURHASH_TRANSITION}
+                                cachePolicy="memory-disk"
+                            />
+
+                            {/* Title & Metadata */}
+                            <View className="flex-1 justify-end pb-1 pl-4 pt-[64px]">
+                                <Text className="text-2xl font-bold leading-tight text-white">
+                                    {title}
+                                </Text>
+
+                                <View className="mt-2 flex-row flex-wrap items-center gap-x-3">
+                                    <View
+                                        className="flex-row items-center rounded px-1.5 py-0.5"
+                                        style={{ backgroundColor: `${ratingColor}33` }}>
+                                        <Ionicons name="star" size={12} color={ratingColor} />
+                                        <Text
+                                            className="ml-1 text-base font-bold"
+                                            style={{ color: ratingColor }}>
+                                            {data.vote_average.toFixed(1)}
+                                        </Text>
+                                    </View>
+
+                                    <Text className="text-base font-medium text-neutral-300">
+                                        {formattedDate}
+                                    </Text>
+                                    {meta && (
+                                        <Text className="mt-1 text-base font-medium text-neutral-300">
+                                            {meta}
+                                        </Text>
+                                    )}
+                                </View>
+                            </View>
                         </View>
-                        <Text className="text-lg text-white">{type !== 'movie' ? meta : ''}</Text>
-                    </View>
-                    {/* Action Buttons */}
-                    <View className="mt-6 flex-1 flex-row items-center justify-evenly gap-2">
-                        <View className="items-center">
-                            <Pressable
-                                className="rounded-full bg-white/10 p-3 active:bg-orange-300/30"
+
+                        {/* Action Buttons Row */}
+                        <View className="mt-6 flex-row items-center justify-around rounded-xl border border-neutral-800 bg-neutral-900/80 py-3">
+                            {/* <View className="mt-6 flex-row items-center justify-around rounded-xl bg-neutral-900/80 py-3"> */}
+                            <ActionButton
+                                icon="play"
+                                label="Trailer"
                                 onPress={handleWatchTrailer}
-                                hitSlop={8}>
-                                <Ionicons name="play" size={20} color="white" />
-                            </Pressable>
-                            <Text className="mt-2 text-xs text-white">Watch Trailer</Text>
-                        </View>
-                        <View className="items-center">
-                            <Pressable
-                                className="rounded-full bg-white/10 p-3 active:bg-orange-300/30"
-                                onPress={() => console.log('Add to Watchlist')}
-                                hitSlop={8}>
-                                <Ionicons name="bookmark-outline" size={20} color="white" />
-                            </Pressable>
-                            <Text className="mt-2 text-xs text-white">Add to Watchlist</Text>
-                        </View>
-                        <View className="items-center">
-                            <Pressable
-                                className="rounded-full bg-white/10 p-3 active:bg-orange-300/30"
-                                onPress={() => console.log('Mark as Watched')}
-                                hitSlop={8}>
-                                <Ionicons name="checkmark" size={20} color="white" />
-                            </Pressable>
-                            <Text className="mt-2 text-xs text-white">Mark as Watched</Text>
+                            />
+                            <ActionButton
+                                icon="bookmark-outline"
+                                label="Watchlist"
+                                onPress={() => console.log('Watchlist')}
+                            />
+                            <ActionButton
+                                icon="checkmark"
+                                label="Watched"
+                                onPress={() => console.log('Watched')}
+                            />
                         </View>
                     </View>
-                </Animated.View>
+                </View>
 
-                <View className="bg-[#121212] p-3">
+                <View className="bg-[#121212] px-4 pb-10 pt-4">
                     {/* Episode Guide */}
                     {type === 'tv' && (
                         <Pressable
-                            className={'flex-row items-center'}
+                            className="mb-6 flex-row items-center justify-between border-b border-neutral-800 pb-4 active:opacity-60"
                             onPress={() =>
                                 router.push({
                                     pathname: `/[type]/[id]/episode-guide`,
-                                    params: {
-                                        type,
-                                        id,
-                                        title: data.name,
-                                    },
+                                    params: { type, id, title: data.name },
                                 })
                             }>
-                            <Text
-                                style={{
-                                    color: Colors.headingText,
-                                    fontWeight: '600',
-                                    fontSize: 18,
-                                }}>
-                                Episode Guide
-                            </Text>
-                            <Ionicons name="chevron-forward" size={24} color="white" />
+                            <Text className="text-lg font-semibold text-white">Episode Guide</Text>
+                            <Ionicons name="chevron-forward" size={20} color="gray" />
                         </Pressable>
                     )}
+
                     {/* Overview */}
-                    <View className="mt-4">
-                        <Text className="text-xl font-semibold text-white">Overview</Text>
-                        <Text className="mt-2 text-lg text-gray-300">{data.overview}</Text>
+                    <View className="mb-6">
+                        <Text className="mb-2 text-lg font-semibold text-white">Overview</Text>
+                        <Text className="mt-2 text-base leading-6 text-neutral-300">
+                            {data.overview || 'No overview available.'}
+                        </Text>
                     </View>
 
                     {/* Genres */}
-                    <View className="mt-6">
-                        <Text className="text-xl font-semibold text-white">Genres</Text>
+                    <ScrollView
+                        className="mb-6 flex-row flex-wrap"
+                        horizontal
+                        showsHorizontalScrollIndicator={false}>
+                        {data.genres.map((genre: { id: number; name: string }) => (
+                            <View
+                                key={genre.id}
+                                // className="mr-2 rounded-full bg-neutral-800 px-4 py-2">
+                                className="mr-2 rounded-full border border-neutral-700 bg-neutral-800 px-4 py-2">
+                                <Text className="text-sm text-white">{genre.name}</Text>
+                            </View>
+                        ))}
+                    </ScrollView>
 
-                        <ScrollView
-                            className="mt-3 flex-row flex-wrap"
-                            horizontal
-                            showsHorizontalScrollIndicator={false}>
-                            {data.genres.map((genre: any) => (
-                                <TouchableOpacity
-                                    key={genre.id}
-                                    className="mb-2 mr-2 rounded-full bg-gray-700 px-4 py-2">
-                                    <Text className="text-sm text-white">{genre.name}</Text>
-                                </TouchableOpacity>
-                            ))}
-                        </ScrollView>
-                    </View>
-
-                    {/* Production Companies */}
-                    <View className="mt-6">
-                        <Text className="text-xl font-semibold text-white">
-                            Production Companies
-                        </Text>
-                        <View className="mt-3">
-                            {data.production_companies.map((company: any) => (
-                                <View key={company.id} className="mb-2 flex-row items-center">
-                                    {company.logo_path && (
-                                        <Image
-                                            source={getTMDBImageSource(company.logo_path)}
-                                            className="mr-4 h-12 w-12"
-                                            contentFit="contain"
-                                            tintColor={'#ffffff'}
-                                        />
-                                    )}
-                                    <Text className="text-lg text-white">{company.name}</Text>
-                                </View>
-                            ))}
-                        </View>
-                    </View>
-
-                    {/* Production Countries */}
-                    <View className="mt-6">
-                        <Text className="text-xl font-semibold text-white">
-                            Production Countries
-                        </Text>
-                        <Text className="mt-3 text-lg text-gray-300">
-                            {data.production_countries
-                                .map((country: any) => country.name)
-                                .join(', ')}
-                        </Text>
-                    </View>
-
-                    {/* Release Date & Runtime */}
-                    <View className="mt-6">
-                        <Text className="text-xl font-semibold text-white">
-                            Release Date & Runtime
-                        </Text>
-                        <Text className="mt-3 text-lg text-gray-300">
-                            Release Date:{' '}
-                            {type === 'movie' ? data.release_date : data.first_air_date}
-                        </Text>
-                        {type === 'movie' && (
-                            <Text className="mt-2 text-lg text-gray-300">
-                                Runtime: {Math.floor(data.runtime / 60)}h {data.runtime % 60}m
+                    {/* Production Info */}
+                    {data.production_companies?.length > 0 && (
+                        <View className="mb-6">
+                            <Text className="mb-3 text-lg font-semibold text-white">
+                                Production
                             </Text>
-                        )}
-                    </View>
-                    {/* Cast */}
-                    <View className="mt-6">
-                        <Text className="text-xl font-semibold text-white">Top Cast</Text>
-                        <FlatList<CastVM>
-                            data={data?.credits?.cast?.slice(0, 10)}
-                            renderItem={renderCastItem}
-                            keyExtractor={(item, index) => item.id.toString()}
-                            horizontal
-                            showsHorizontalScrollIndicator={false}
-                        />
-                    </View>
-                    {/* Collections */}
-                    {movieCollectionSorted && movieCollectionSorted?.length > 0 && (
-                        <View className="pb-2">
+                            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                                {data.production_companies.map(
+                                    (company: {
+                                        id: number;
+                                        logo_path: string | null;
+                                        name: string;
+                                    }) => (
+                                        <View
+                                            key={company.id}
+                                            className="mr-6 flex-row items-center opacity-80">
+                                            {company.logo_path ? (
+                                                <Image
+                                                    source={getTMDBImageSource(company.logo_path)}
+                                                    style={{ width: 24, height: 24 }}
+                                                    contentFit="contain"
+                                                    tintColor="white"
+                                                />
+                                            ) : null}
+                                            <Text className="ml-2 text-xs font-medium text-neutral-400">
+                                                {company.name}
+                                            </Text>
+                                        </View>
+                                    ),
+                                )}
+                            </ScrollView>
+                        </View>
+                    )}
+
+                    {/* Cast List */}
+                    {data.credits?.cast?.length > 0 && (
+                        <View>
+                            <Text className="mb-3 text-lg font-semibold text-white">Top Cast</Text>
+                            <FlatList<CastVM>
+                                data={data.credits.cast?.slice(0, 10)}
+                                renderItem={({ item }) => <CastItem item={item} />}
+                                keyExtractor={(item) => item.id.toString()}
+                                horizontal
+                                showsHorizontalScrollIndicator={false}
+                            />
+                        </View>
+                    )}
+
+                    {/* Collections / Horizontal Lists */}
+                    <View className="-mx-4 gap-2 pl-4">
+                        {movieCollectionSorted && movieCollectionSorted.length > 0 && (
                             <HomeHorizontalList
-                                ListHeading={`Belongs to ${movieCollections?.name}`}
-                                // ListHeading={`More from ${movieCollections?.name}`}
+                                ListHeading={`From ${movieCollections?.name}`}
                                 listType={type}
                                 listData={movieCollectionSorted}
                                 showMore={false}
                             />
-                        </View>
-                    )}
-                    {/* Similar */}
-                    {data?.similar?.results?.length > 0 && (
-                        <View className="pb-4 ">
+                        )}
+
+                        {data.recommendations?.results?.length > 0 && (
                             <HomeHorizontalList
-                                ListHeading="More Like This"
+                                ListHeading="Recommendations"
                                 listType={type}
-                                listData={data?.similar?.results}
+                                listData={data.recommendations.results}
                                 showMore={false}
                             />
-                        </View>
-                    )}
+                        )}
+                    </View>
                 </View>
             </Animated.ScrollView>
         </View>
     );
 };
+
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#fff',
-    },
-    image: {
-        width: width,
-        height: IMG_HEIGHT,
-    },
     header: {
         backgroundColor: Colors.background,
+        height: HEADER_HEIGHT,
+    },
+    headerTitle: {
         color: 'white',
-        height: 100,
-        borderWidth: StyleSheet.hairlineWidth,
+        fontWeight: '600',
+        fontSize: 18,
+        marginHorizontal: 16,
     },
-    imageOverlay: {
-        height: 224 + 50,
-        ...StyleSheet.absoluteFillObject,
+    posterImage: {
+        width: 100,
+        height: 152,
+        borderRadius: 10,
     },
-    // imageShadow: {
-    //     shadowColor: '#000000',
-    //     shadowOffset: {
-    //         width: 1,
-    //         height: 0,
-    //     },
-    //     shadowOpacity: 0,
-    //     shadowRadius: 15,
-    //     elevation: 0,
-    // },
 });
 
 export default MediaDetailScreen;
