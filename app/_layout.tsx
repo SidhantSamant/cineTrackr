@@ -12,6 +12,8 @@ export { ErrorBoundary } from 'expo-router';
 import { MyDarkTheme } from '@/constants/Theme';
 import '@/global.css';
 import { GlobalErrorProvider } from '@/context/GlobalErrorContext';
+import { Colors } from '@/constants/Colors';
+import * as SystemUI from 'expo-system-ui';
 
 export const queryClient = new QueryClient({
     defaultOptions: {
@@ -43,6 +45,7 @@ export default function RootLayout() {
 
     useEffect(() => {
         if (loaded) {
+            SystemUI.setBackgroundColorAsync(Colors.background);
             SplashScreen.hideAsync();
         }
     }, [loaded]);
@@ -61,7 +64,7 @@ function RootLayoutNav() {
             <ThemeProvider value={MyDarkTheme}>
                 <StatusBar style={'light'} />
                 <GlobalErrorProvider>
-                    <Stack>
+                    <Stack screenOptions={{ contentStyle: { backgroundColor: Colors.background } }}>
                         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
                         <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
                         <Stack.Screen

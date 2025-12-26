@@ -17,7 +17,7 @@ const SearchResultItem = React.memo(({ item }: { item: MovieVM | TVShowVM }) => 
     const ratingColor = getRatingColor(item.vote_average || 0);
 
     const handlePress = () => {
-        router.push(`/${item.media_type || 'movie'}/${item.id}`);
+        router.navigate(`/${item.media_type}/${item.id}`);
     };
 
     return (

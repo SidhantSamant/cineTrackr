@@ -25,9 +25,10 @@ export default function HomeHorizontalList({
                 className={'flex-row items-center pb-2 pt-6'}
                 onPress={() =>
                     showMore
-                        ? router.push({
-                              pathname: `/${listType}`,
+                        ? router.navigate({
+                              pathname: '/home/type-list',
                               params: {
+                                  type: listType,
                                   slug: getCategorySlug(ListHeading as SectionHeadings),
                                   title: ListHeading,
                               },

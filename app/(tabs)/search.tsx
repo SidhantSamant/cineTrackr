@@ -14,7 +14,7 @@ const SearchScreen = () => {
     const [searchText, setSearchText] = useState('');
     const [activeFilter, setActiveFilter] = useState<SearchType>('multi');
     const { showError } = useGlobalError();
-    const debouncedSearchText = useDebounce(searchText, 500);
+    const debouncedSearchText = useDebounce(searchText?.trim(), 500);
     const isSearching = debouncedSearchText.length > 2;
 
     const {

@@ -6,7 +6,7 @@ import { Pressable } from 'react-native';
 export default function HomeStackLayout() {
     return (
         <Stack
-            initialRouteName="home"
+            initialRouteName="index"
             screenOptions={{
                 headerShadowVisible: false,
                 headerStyle: {
@@ -19,7 +19,7 @@ export default function HomeStackLayout() {
                 },
             }}>
             <Stack.Screen
-                name="home"
+                name="index"
                 options={{
                     headerTitle: 'Cine Trackr',
                     // headerRight: () => <HeaderRightProfileIcon addExtraMargin={false} />,
@@ -27,7 +27,7 @@ export default function HomeStackLayout() {
             />
 
             <Stack.Screen
-                name="[type]"
+                name="type-list"
                 options={{
                     headerTitle: '',
                     headerTitleStyle: {

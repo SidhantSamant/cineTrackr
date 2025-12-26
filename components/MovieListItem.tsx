@@ -15,7 +15,7 @@ const MovieListItem = ({ isGridView, data, type }: MovieListItemProps) => {
     return (
         <Pressable
             style={{ width: isGridView ? '33%' : 100 }}
-            onPress={() => router.push(`/${type}/${data?.id}`)}>
+            onPress={() => router.navigate(`/${type}/${data?.id}`)}>
             <Image
                 source={getTMDBImageSource(data?.poster_path)}
                 style={{ width: '100%', aspectRatio: 3 / 5, borderRadius: 16 }}

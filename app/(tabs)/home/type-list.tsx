@@ -6,7 +6,7 @@ import { fetchListData } from '@/utils/tmdbService';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { router, useLocalSearchParams, useNavigation } from 'expo-router';
 import { useEffect, useLayoutEffect } from 'react';
-import { ActivityIndicator, FlatList, Text, View } from 'react-native';
+import { ActivityIndicator, FlatList, View } from 'react-native';
 
 export default function MoviesScreen() {
     const navigation = useNavigation();
