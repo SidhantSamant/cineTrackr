@@ -56,13 +56,13 @@ const SeasonAccordionItem = ({ tvShowId, seasonSummary }: Props) => {
     }, [episodes, forceSeasonWatched]);
 
     useEffect(() => {
-        if (error || (!episodes && !isLoading)) {
+        if (error) {
             showError({
                 rightButtonText: 'Retry',
                 onRightButtonPress: refetch,
             });
         }
-    }, [error, episodes, isLoading]);
+    }, [error]);
 
     // Derived State
     const totalEpisodes = seasonSummary.episode_count;

@@ -1,12 +1,12 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { View } from 'react-native';
 import Animated, {
+    SharedValue,
     useAnimatedStyle,
     useSharedValue,
     withRepeat,
     withSequence,
     withTiming,
-    SharedValue,
 } from 'react-native-reanimated';
 
 const SkeletonBox = ({
@@ -45,16 +45,14 @@ export const TrendingSkeleton = () => {
     const opacity = useSkeletonAnimation();
 
     return (
-        <View className="mb-4">
-            <View className="flex-row gap-3">
-                {[1, 2].map((i) => (
-                    <SkeletonBox
-                        key={i}
-                        opacity={opacity}
-                        className="aspect-[5/3] w-[300px] rounded-2xl"
-                    />
-                ))}
-            </View>
+        <View className="mb-4 flex-row gap-3">
+            {[1, 2].map((i) => (
+                <SkeletonBox
+                    key={i}
+                    opacity={opacity}
+                    className="aspect-[5/3] w-[300px] rounded-2xl"
+                />
+            ))}
         </View>
     );
 };
