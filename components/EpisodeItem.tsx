@@ -62,7 +62,7 @@ const EpisodeItem = ({ episode, isWatched, onToggle }: Props) => {
                     <Pressable
                         onPress={handleToggle}
                         hitSlop={10}
-                        className={`rounded-full p-1.5 ${isWatched ? 'bg-green-500' : 'bg-neutral-300'}`}>
+                        className={`rounded-full p-1.5 active:scale-90 active:opacity-70 ${isWatched ? 'bg-green-500' : 'bg-neutral-300'}`}>
                         <Ionicons
                             name={'checkmark-sharp'}
                             size={18}

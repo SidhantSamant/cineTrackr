@@ -45,7 +45,7 @@ export const TrendingSkeleton = () => {
     const opacity = useSkeletonAnimation();
 
     return (
-        <View className="mb-4 flex-row gap-3">
+        <View className="mb-2 flex-row gap-3">
             {[1, 2].map((i) => (
                 <SkeletonBox
                     key={i}

@@ -14,7 +14,7 @@ const ActionButton = React.memo(
     }) => (
         <View className="min-w-[60px] items-center">
             <Pressable
-                className="rounded-full bg-white/10 p-3 active:scale-90 active:bg-white/20"
+                className="rounded-full bg-white/10 p-3 active:scale-90 active:opacity-70"
                 onPress={onPress}
                 hitSlop={8}>
                 <Ionicons name={icon} size={22} color="white" />

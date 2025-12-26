@@ -62,7 +62,7 @@ export default function HomeScreen() {
                     );
                 })}
 
-                <View className="h-4" />
+                <View className="h-8" />
             </ScrollView>
         </View>
     );

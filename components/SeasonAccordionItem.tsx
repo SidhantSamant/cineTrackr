@@ -208,7 +208,7 @@ const SeasonAccordionItem = ({ tvShowId, seasonSummary }: Props) => {
                     <Pressable
                         onPress={toggleSeasonWatched}
                         hitSlop={10}
-                        className={`mr-2 rounded-full p-1.5 ${isSeasonFullyWatched ? 'bg-green-500' : 'bg-neutral-300'}`}>
+                        className={`mr-2 rounded-full p-1.5 active:scale-90 active:opacity-70 ${isSeasonFullyWatched ? 'bg-green-500' : 'bg-neutral-300'}`}>
                         <Ionicons
                             name={'checkmark-sharp'}
                             size={18}

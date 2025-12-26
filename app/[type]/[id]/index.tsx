@@ -282,7 +282,7 @@ const MediaDetailScreen = () => {
                     </View>
                 </View>
 
-                <View className="bg-[#121212] px-4 pb-10 pt-4">
+                <View className="bg-[#121212] px-4 pb-8 pt-4">
                     {/* Episode Guide */}
                     {type === 'tv' && (
                         <Pressable

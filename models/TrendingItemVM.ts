@@ -7,10 +7,3 @@ export type TrendingItemVM =
     | (TVShowVM & { media_type: 'tv' });
 
 export type TrendingResponseVM = BaseResponseVM<TrendingItemVM>;
-
-// export interface TrendingResponse {
-//     page: number;
-//     results: TrendingItem[];
-//     total_pages: number;
-//     total_results: number;
-// }
