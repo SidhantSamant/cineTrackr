@@ -236,7 +236,7 @@ const SeasonAccordionItem = ({ tvShowId, seasonSummary }: Props) => {
                     {isLoading ? (
                         <EpisodeListSkeleton />
                     ) : episodes && episodes.length > 0 ? (
-                        <View className="py-2">
+                        <>
                             {episodes.map((episode) => (
                                 <EpisodeItem
                                     key={episode.id}
@@ -247,7 +247,7 @@ const SeasonAccordionItem = ({ tvShowId, seasonSummary }: Props) => {
                                     onToggle={() => toggleEpisodeWatched(episode.id)}
                                 />
                             ))}
-                        </View>
+                        </>
                     ) : (
                         <View className="items-center py-6">
                             <Text className="text-sm italic text-neutral-500">
