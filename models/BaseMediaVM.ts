@@ -7,6 +7,7 @@ export interface BaseMediaVM {
     overview: string;
     popularity: number;
     poster_path: string | null;
+    media_type: MediaType | null;
     vote_average: number;
     vote_count: number;
     videos: {

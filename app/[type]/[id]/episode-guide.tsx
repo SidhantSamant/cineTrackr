@@ -1,12 +1,13 @@
 import SeasonAccordionItem from '@/components/SeasonAccordionItem';
 import { Colors } from '@/constants/Colors';
+import { useGlobalError } from '@/context/GlobalErrorContext';
 import { SeasonVM } from '@/models/SeasonVM';
 import { MediaType } from '@/models/TVShowVM';
 import { getDetails } from '@/utils/tmdbService';
 import { useQuery } from '@tanstack/react-query';
-import { useLocalSearchParams, useNavigation } from 'expo-router';
-import { useCallback, useLayoutEffect, useState } from 'react';
-import { ActivityIndicator, FlatList, Text, View } from 'react-native';
+import { router, useLocalSearchParams, useNavigation } from 'expo-router';
+import { useCallback, useEffect, useLayoutEffect, useState } from 'react';
+import { ActivityIndicator, FlatList, Pressable, Text, View } from 'react-native';
 
 export default function MoviesScreen() {
     const navigation = useNavigation();
@@ -15,6 +16,7 @@ export default function MoviesScreen() {
         title: string;
         type: MediaType;
     }>();
+    const { showError } = useGlobalError();
     const [seleactedSeason, setSelectedSeason] = useState(0);
 
     useLayoutEffect(() => {
@@ -31,6 +33,15 @@ export default function MoviesScreen() {
 
     const seasons = data?.seasons?.filter((s: { season_number: number }) => s.season_number > 0);
 
+    useEffect(() => {
+        if (error || (!data && !isLoading)) {
+            showError({
+                leftButtonText: 'Go Back',
+                onLeftButtonPress: router.back,
+            });
+        }
+    }, [error, data, isLoading]);
+
     if (isLoading) {
         return (
             <View className="flex-1 items-center justify-center bg-[#121212]">
@@ -39,8 +50,8 @@ export default function MoviesScreen() {
         );
     }
 
-    if (error) {
-        return <Text>Something went wrong</Text>;
+    if (error || (!data && !isLoading)) {
+        return <View className="flex-1 bg-[#121212]" />;
     }
 
     const handleToggle = (seasonNum: number) => {

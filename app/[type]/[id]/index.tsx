@@ -1,7 +1,8 @@
-import ActionButton from '@/components/ActionButton';
 import CastItem from '@/components/CastItem';
 import HomeHorizontalList from '@/components/HomeHorizonalList';
+import ActionButton from '@/components/UI/ActionButton';
 import { Colors } from '@/constants/Colors';
+import { useGlobalError } from '@/context/GlobalErrorContext';
 import { CastVM } from '@/models/BaseMediaVM';
 import { MediaType } from '@/models/TVShowVM';
 import { getYouTubeKey } from '@/utils/detailHelper';
@@ -20,7 +21,7 @@ import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import {
     ActivityIndicator,
     Alert,
@@ -46,9 +47,10 @@ const HEADER_HEIGHT = 100;
 
 const MediaDetailScreen = () => {
     const { id, type } = useLocalSearchParams<{ id: string; type: MediaType }>();
+    const { showError } = useGlobalError();
 
     // Queries
-    const { data, isLoading, error } = useQuery({
+    const { data, isLoading, error, refetch } = useQuery({
         queryKey: [type, id],
         queryFn: () => getDetails(type, +id),
     });
@@ -57,6 +59,7 @@ const MediaDetailScreen = () => {
         data: movieCollections,
         isLoading: isLoadingCollections,
         error: errorCollections,
+        refetch: refetchCollections,
     } = useQuery({
         queryKey: [type, 'collections', id],
         queryFn: () => getMovieCollection(data?.belongs_to_collection?.id),
@@ -71,6 +74,17 @@ const MediaDetailScreen = () => {
             return dateA - dateB;
         });
     }, [movieCollections]);
+
+    useEffect(() => {
+        if (error || errorCollections || (!data && !isLoading)) {
+            showError({
+                leftButtonText: !errorCollections ? 'Go Back' : undefined,
+                onLeftButtonPress: !errorCollections ? router.back : undefined,
+                rightButtonText: 'Retry',
+                onRightButtonPress: !errorCollections ? refetch : refetchCollections,
+            });
+        }
+    }, [error, errorCollections, data, isLoading]);
 
     // Animations
     const scrollOffset = useSharedValue(0);
@@ -129,20 +143,12 @@ const MediaDetailScreen = () => {
             <View className="flex-1 items-center justify-center bg-[#121212]">
                 <ActivityIndicator size="large" color={Colors.primary} />
             </View>
+            // <DetailScreenSkeleton />
         );
     }
 
-    if (error || errorCollections || !data) {
-        return (
-            <View className="flex-1 items-center justify-center bg-[#121212]">
-                <Text className="text-lg font-medium text-white">Content not found</Text>
-                <Pressable
-                    onPress={router.back}
-                    className="mt-4 rounded-full bg-white/10 px-6 py-2">
-                    <Text className="text-white">Go Back</Text>
-                </Pressable>
-            </View>
-        );
+    if (error || (!data && !isLoading)) {
+        return <View className="flex-1 bg-[#121212]" />;
     }
 
     // Formatting

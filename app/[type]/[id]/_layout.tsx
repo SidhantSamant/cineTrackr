@@ -10,6 +10,8 @@ export default function DetailStackLayout() {
                 name="index"
                 options={{
                     headerTitle: '',
+                    headerBackVisible: false,
+                    // headerShown: false,
                 }}
             />
 

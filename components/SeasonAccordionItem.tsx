@@ -6,7 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { Image } from 'expo-image';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, LayoutChangeEvent, Pressable, Text, View } from 'react-native';
+import { LayoutChangeEvent, Pressable, Text, View } from 'react-native';
 import Animated, {
     Extrapolation,
     interpolate,
@@ -15,7 +15,8 @@ import Animated, {
     withTiming,
 } from 'react-native-reanimated';
 import EpisodeItem from './EpisodeItem';
-import { Colors } from '@/constants/Colors';
+import { EpisodeListSkeleton } from './UI/Skeletons';
+import { useGlobalError } from '@/context/GlobalErrorContext';
 
 interface Props {
     tvShowId: number;
@@ -23,8 +24,10 @@ interface Props {
 }
 
 const SeasonAccordionItem = ({ tvShowId, seasonSummary }: Props) => {
+    const { showError } = useGlobalError();
     const [isExpanded, setIsExpanded] = useState(false);
     const [watchedEpisodeIds, setWatchedEpisodeIds] = useState<Set<number>>(new Set());
+    const [forceSeasonWatched, setForceSeasonWatched] = useState(false);
 
     const animationController = useSharedValue(0);
     const contentHeight = useSharedValue(0);
@@ -33,21 +36,42 @@ const SeasonAccordionItem = ({ tvShowId, seasonSummary }: Props) => {
         data: season,
         isLoading,
         error,
+        refetch,
     } = useQuery({
         queryKey: ['season', tvShowId, seasonSummary.season_number],
         queryFn: () => fetchSeasonDetails(tvShowId, seasonSummary.season_number),
         enabled: isExpanded,
-        staleTime: 1000 * 60 * 30,
     });
 
     const episodes = season?.episodes;
 
+    useEffect(() => {
+        if (forceSeasonWatched && episodes && episodes.length > 0) {
+            const allIds = episodes.map((e) => e.id);
+            setWatchedEpisodeIds((prev) => {
+                if (prev.size === allIds.length) return prev;
+                return new Set(allIds);
+            });
+        }
+    }, [episodes, forceSeasonWatched]);
+
+    useEffect(() => {
+        if (error || (!episodes && !isLoading)) {
+            showError({
+                rightButtonText: 'Retry',
+                onRightButtonPress: refetch,
+            });
+        }
+    }, [error, episodes, isLoading]);
+
     // Derived State
     const totalEpisodes = seasonSummary.episode_count;
     const watchedCount = watchedEpisodeIds.size;
-    const isSeasonFullyWatched = totalEpisodes > 0 && watchedCount === totalEpisodes;
     const progressPercent = totalEpisodes > 0 ? (watchedCount / totalEpisodes) * 100 : 0;
+    const isSeasonFullyWatched =
+        forceSeasonWatched || (totalEpisodes > 0 && watchedCount === totalEpisodes);
 
+    // Animations
     useEffect(() => {
         animationController.value = withTiming(isExpanded ? 1 : 0, { duration: 300 });
     }, [isExpanded]);
@@ -77,6 +101,8 @@ const SeasonAccordionItem = ({ tvShowId, seasonSummary }: Props) => {
     };
 
     const toggleEpisodeWatched = (episodeId: number) => {
+        setForceSeasonWatched(false);
+
         setWatchedEpisodeIds((prev) => {
             const next = new Set(prev);
             if (next.has(episodeId)) {
@@ -89,13 +115,17 @@ const SeasonAccordionItem = ({ tvShowId, seasonSummary }: Props) => {
     };
 
     const toggleSeasonWatched = () => {
-        if (!episodes) return;
-
-        if (isSeasonFullyWatched) {
-            setWatchedEpisodeIds(new Set());
+        if (episodes && episodes.length > 0) {
+            if (isSeasonFullyWatched) {
+                setWatchedEpisodeIds(new Set());
+                setForceSeasonWatched(false);
+            } else {
+                const allIds = episodes.map((e) => e.id);
+                setWatchedEpisodeIds(new Set(allIds));
+                setForceSeasonWatched(true);
+            }
         } else {
-            const allIds = episodes.map((e) => e.id);
-            setWatchedEpisodeIds(new Set(allIds));
+            setForceSeasonWatched((prev) => !prev);
         }
     };
 
@@ -204,16 +234,16 @@ const SeasonAccordionItem = ({ tvShowId, seasonSummary }: Props) => {
             <Animated.View style={[{ overflow: 'hidden' }, containerStyle]}>
                 <View onLayout={onLayout} className="absolute left-0 top-0 w-full bg-black/20">
                     {isLoading ? (
-                        <View className="items-center justify-center py-8">
-                            <ActivityIndicator size="small" color={Colors.primary} />
-                        </View>
+                        <EpisodeListSkeleton />
                     ) : episodes && episodes.length > 0 ? (
                         <View className="py-2">
                             {episodes.map((episode) => (
                                 <EpisodeItem
                                     key={episode.id}
                                     episode={episode}
-                                    isWatched={watchedEpisodeIds.has(episode.id)}
+                                    isWatched={
+                                        isSeasonFullyWatched || watchedEpisodeIds.has(episode.id)
+                                    }
                                     onToggle={() => toggleEpisodeWatched(episode.id)}
                                 />
                             ))}

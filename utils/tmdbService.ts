@@ -82,3 +82,25 @@ export const getAllEpisodes = async (tvId: number, seasonNumber: number) => {
         console.log(error);
     }
 };
+
+export const searchMedia = async (searchQuery: string, searchType: 'multi' | 'movie' | 'tv') => {
+    try {
+        const data = await tmdbClient.get<MovieResponse | TVSeriesResponse>(
+            `search/${searchType}?query=${searchQuery}&include_adult=false&language=en-US&page=1`,
+        );
+
+        const results = data?.results || [];
+
+        if (searchType === 'movie') {
+            return results.map((item) => ({ ...item, media_type: 'movie' }));
+        }
+
+        if (searchType === 'tv') {
+            return results.map((item) => ({ ...item, media_type: 'tv' }));
+        }
+
+        return results.filter((x) => x.media_type === 'movie' || x.media_type === 'tv');
+    } catch (error) {
+        console.log(error);
+    }
+};

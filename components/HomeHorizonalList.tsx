@@ -1,4 +1,3 @@
-import { Colors } from '@/constants/Colors';
 import { MovieVM } from '@/models/MovieVM';
 import { MediaType, TVShowVM } from '@/models/TVShowVM';
 import { getCategorySlug, SectionHeadings } from '@/utils/dashBoardHelper';
@@ -35,14 +34,8 @@ export default function HomeHorizontalList({
                           })
                         : null
                 }>
-                <Text
-                    style={{
-                        color: Colors.headingText,
-                        fontWeight: '600',
-                        fontSize: 18,
-                    }}>
-                    {ListHeading}
-                </Text>
+                <Text className="text-lg font-bold text-white">{ListHeading}</Text>
+
                 {showMore && <Entypo name="chevron-right" size={24} color="white" />}
             </Pressable>
 
@@ -52,7 +45,6 @@ export default function HomeHorizontalList({
                 showsHorizontalScrollIndicator={false}
                 keyExtractor={(item) => item.id.toString()}
                 contentContainerStyle={{
-                    // paddingHorizontal: 8,
                     gap: 8,
                 }}
                 renderItem={({ item }) => (

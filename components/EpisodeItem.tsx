@@ -47,7 +47,7 @@ const EpisodeItem = ({ episode, isWatched, onToggle }: Props) => {
             </View>
 
             <View className="flex-1 justify-center">
-                <View className="flex-row items-start justify-between">
+                <View className="flex-row items-center justify-between">
                     <View className="mr-2 flex-1">
                         <Text className="mb-0.5 text-xs font-bold text-neutral-500">
                             EPISODE {episode.episode_number}

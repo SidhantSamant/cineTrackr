@@ -1,6 +1,5 @@
 import { Colors } from '@/constants/Colors';
 import { router, Stack } from 'expo-router';
-import { HeaderRightIcon } from '../_layout';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Pressable } from 'react-native';
 
@@ -23,7 +22,7 @@ export default function HomeStackLayout() {
                 name="home"
                 options={{
                     headerTitle: 'Cine Trackr',
-                    headerRight: () => <HeaderRightIcon addExtraMargin={false} />,
+                    // headerRight: () => <HeaderRightProfileIcon addExtraMargin={false} />,
                 }}
             />
 

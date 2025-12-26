@@ -1,20 +1,21 @@
 import MovieListItem from '@/components/MovieListItem';
 import { Colors } from '@/constants/Colors';
+import { useGlobalError } from '@/context/GlobalErrorContext';
 import { MediaType } from '@/models/TVShowVM';
 import { fetchListData } from '@/utils/tmdbService';
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { useLocalSearchParams, useNavigation } from 'expo-router';
-import { useLayoutEffect } from 'react';
+import { router, useLocalSearchParams, useNavigation } from 'expo-router';
+import { useEffect, useLayoutEffect } from 'react';
 import { ActivityIndicator, FlatList, Text, View } from 'react-native';
 
 export default function MoviesScreen() {
     const navigation = useNavigation();
+    const { showError } = useGlobalError();
     const { type, slug, title } = useLocalSearchParams<{
         type: MediaType;
         slug: string;
         title: string;
     }>();
-
     useLayoutEffect(() => {
         navigation.setOptions({
             headerTitle: title,
@@ -33,6 +34,17 @@ export default function MoviesScreen() {
 
     const listData = data?.pages.flat();
 
+    useEffect(() => {
+        if (error || (!listData && !isLoading)) {
+            showError({
+                leftButtonText: 'Go Back',
+                onLeftButtonPress: router.back,
+                rightButtonText: 'Retry',
+                onRightButtonPress: refetch,
+            });
+        }
+    }, [error, listData, isLoading]);
+
     if (isLoading) {
         return (
             <View className="flex-1 items-center justify-center bg-[#121212]">
@@ -41,8 +53,8 @@ export default function MoviesScreen() {
         );
     }
 
-    if (error) {
-        return <Text>{error.message}</Text>;
+    if (error || (!listData && !isLoading)) {
+        return <View className="flex-1 bg-[#121212]" />;
     }
 
     return (

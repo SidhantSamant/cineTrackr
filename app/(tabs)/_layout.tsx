@@ -1,29 +1,8 @@
 import { Colors } from '@/constants/Colors';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { Link, Tabs } from 'expo-router';
-import { Platform, Pressable } from 'react-native';
+import { Tabs } from 'expo-router';
+import { Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
-export function HeaderRightIcon({ addExtraMargin = true }: { addExtraMargin?: boolean }) {
-    return (
-        <Link href="/modal" asChild>
-            <Pressable>
-                {({ pressed }) => (
-                    <Ionicons
-                        name="person-circle"
-                        size={36}
-                        color={'#8c8c8c'}
-                        style={{
-                            marginRight: addExtraMargin ? 16 : 0,
-                            marginBottom: addExtraMargin ? 8 : 0,
-                            opacity: pressed ? 0.5 : 1,
-                        }}
-                    />
-                )}
-            </Pressable>
-        </Link>
-    );
-}
 
 export default function TabLayout() {
     const insets = useSafeAreaInsets();
@@ -66,7 +45,6 @@ export default function TabLayout() {
                 options={{
                     title: 'Home',
                     headerShown: false,
-                    // headerTitle: 'Cine Trackr',
                     tabBarIcon: ({ color, size, focused }) => (
                         <Ionicons
                             name={focused ? 'home' : 'home-outline'}
@@ -74,7 +52,7 @@ export default function TabLayout() {
                             color={color}
                         />
                     ),
-                    // headerRight: () => <HeaderRightIcon />,
+                    // headerRight: () => <HeaderRightProfileIcon />,
                 }}
             />
             <Tabs.Screen
@@ -88,19 +66,19 @@ export default function TabLayout() {
                             color={color}
                         />
                     ),
-                    headerRight: () => <HeaderRightIcon />,
+                    // headerRight: () => <HeaderRightProfileIcon />,
                 }}
             />
-            <Tabs.Screen
+            {/* <Tabs.Screen
                 name="series"
                 options={{
                     title: 'TV Series',
                     tabBarIcon: ({ color, size, focused }) => (
                         <Ionicons name={focused ? 'tv' : 'tv-outline'} size={size} color={color} />
                     ),
-                    headerRight: () => <HeaderRightIcon />,
+                    // headerRight: () => <HeaderRightProfileIcon />,
                 }}
-            />
+            /> */}
             <Tabs.Screen
                 name="watchlist"
                 options={{
@@ -112,7 +90,20 @@ export default function TabLayout() {
                             color={color}
                         />
                     ),
-                    headerRight: () => <HeaderRightIcon />,
+                    // headerRight: () => <HeaderRightProfileIcon />,
+                }}
+            />
+            <Tabs.Screen
+                name="profile"
+                options={{
+                    title: 'Profile',
+                    tabBarIcon: ({ color, size, focused }) => (
+                        <Ionicons
+                            name={focused ? 'person' : 'person-outline'}
+                            size={size}
+                            color={color}
+                        />
+                    ),
                 }}
             />
         </Tabs>

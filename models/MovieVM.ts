@@ -40,6 +40,7 @@ export interface MovieVM extends BaseMediaVM {
     original_title: string;
     release_date: string;
     belongs_to_collection: TmdbMovieCollectionVM | null;
+    media_type: 'movie';
     similar: BaseResponseVM<MovieVM>;
 }
 

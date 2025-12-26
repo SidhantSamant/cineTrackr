@@ -58,7 +58,7 @@ const TrendingListItem = ({ data }: TrendingListItemProps) => {
                             }}>
                             <Text
                                 numberOfLines={1}
-                                className="mr-1 text-xl font-semibold text-white">
+                                className="mr-1 text-lg font-semibold text-white">
                                 {title}
                             </Text>
                             <View className="flex-row items-center">

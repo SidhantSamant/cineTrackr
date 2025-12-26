@@ -1,37 +1,34 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { DarkTheme, ThemeProvider } from '@react-navigation/native';
+import { ThemeProvider } from '@react-navigation/native';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
+import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
-
-// import { useColorScheme } from "@/components/useColorScheme";
-import { StatusBar } from 'expo-status-bar';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+export { ErrorBoundary } from 'expo-router';
 // import { useReactQueryDevTools } from '@dev-plugins/react-query';
+import { MyDarkTheme } from '@/constants/Theme';
 import '@/global.css';
+import { GlobalErrorProvider } from '@/context/GlobalErrorContext';
 
-const queryClient = new QueryClient();
-// const queryClient = new QueryClient({
-// 	defaultOptions: {
-// 		queries: {
-// 			refetchOnWindowFocus: false,
-// 		},
-// 	},
-// });
-
-export {
-    // Catch any errors thrown by the Layout component.
-    ErrorBoundary,
-} from 'expo-router';
+export const queryClient = new QueryClient({
+    defaultOptions: {
+        queries: {
+            staleTime: 1000 * 60 * 10,
+            gcTime: 1000 * 60 * 15,
+            retry: 2,
+            refetchOnWindowFocus: false,
+            refetchOnReconnect: true,
+        },
+    },
+});
 
 export const unstable_settings = {
-    // Ensure that reloading on `/modal` keeps a back button present.
     initialRouteName: '(tabs)',
 };
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
@@ -40,7 +37,6 @@ export default function RootLayout() {
         ...FontAwesome.font,
     });
 
-    // Expo Router uses Error Boundaries to catch errors in the navigation tree.
     useEffect(() => {
         if (error) throw error;
     }, [error]);
@@ -62,13 +58,18 @@ function RootLayoutNav() {
     // useReactQueryDevTools(queryClient);
     return (
         <QueryClientProvider client={queryClient}>
-            <ThemeProvider value={DarkTheme}>
+            <ThemeProvider value={MyDarkTheme}>
                 <StatusBar style={'light'} />
-                <Stack>
-                    <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                    <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
-                    <Stack.Screen name="[type]/[id]" options={{ title: '', headerShown: false }} />
-                </Stack>
+                <GlobalErrorProvider>
+                    <Stack>
+                        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                        <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+                        <Stack.Screen
+                            name="[type]/[id]"
+                            options={{ title: '', headerShown: false }}
+                        />
+                    </Stack>
+                </GlobalErrorProvider>
             </ThemeProvider>
         </QueryClientProvider>
     );

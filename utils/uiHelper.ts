@@ -76,7 +76,8 @@ export function formatTVYear(tv: {
 
     // Ongoing
     if (tv.status !== 'Ended') {
-        return `${startYear} - `;
+        // return `${startYear} - `;
+        return `${startYear} • Continuing`;
     }
 
     const endYear = tv.last_air_date?.split('-')[0] ?? startYear;
