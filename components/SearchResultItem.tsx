@@ -7,6 +7,7 @@ import { getTMDBImageSource, getBlurHash, BLURHASH_TRANSITION } from '@/utils/im
 import { getRatingColor } from '@/utils/uiHelper';
 import { MovieVM } from '@/models/MovieVM';
 import { TVShowVM } from '@/models/TVShowVM';
+import { Colors } from '@/constants/Colors';
 
 const SearchResultItem = React.memo(({ item }: { item: MovieVM | TVShowVM }) => {
     const isMovie = item.media_type === 'movie';
@@ -33,7 +34,7 @@ const SearchResultItem = React.memo(({ item }: { item: MovieVM | TVShowVM }) => 
                     width: 70,
                     height: 105,
                     borderRadius: 8,
-                    backgroundColor: '#262626',
+                    backgroundColor: Colors.imgBackground,
                 }}
             />
 

@@ -1,6 +1,7 @@
 import CastItem from '@/components/CastItem';
 import HomeHorizontalList from '@/components/HomeHorizonalList';
 import ActionButton from '@/components/UI/ActionButton';
+import { HorizontalListSkeleton } from '@/components/UI/Skeletons';
 import { Colors } from '@/constants/Colors';
 import { useGlobalError } from '@/context/GlobalErrorContext';
 import { CastVM } from '@/models/BaseMediaVM';
@@ -138,7 +139,7 @@ const MediaDetailScreen = () => {
         }
     }, [data]);
 
-    if (isLoading || isLoadingCollections) {
+    if (isLoading) {
         return (
             <View className="flex-1 items-center justify-center bg-[#121212]">
                 <ActivityIndicator size="large" color={Colors.primary} />
@@ -371,13 +372,18 @@ const MediaDetailScreen = () => {
 
                     {/* Collections / Horizontal Lists */}
                     <View className="-mx-4 gap-2 pl-4">
-                        {movieCollectionSorted && movieCollectionSorted.length > 0 && (
-                            <HomeHorizontalList
-                                ListHeading={`From ${movieCollections?.name}`}
-                                listType={type}
-                                listData={movieCollectionSorted}
-                                showMore={false}
-                            />
+                        {isLoadingCollections ? (
+                            <HorizontalListSkeleton />
+                        ) : (
+                            movieCollectionSorted &&
+                            movieCollectionSorted.length > 0 && (
+                                <HomeHorizontalList
+                                    ListHeading={`From ${movieCollections?.name}`}
+                                    listType={type}
+                                    listData={movieCollectionSorted}
+                                    showMore={false}
+                                />
+                            )
                         )}
 
                         {data.recommendations?.results?.length > 0 && (

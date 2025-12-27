@@ -1,11 +1,12 @@
 import { useEffect } from 'react';
 import { View } from 'react-native';
 import Animated, {
+    cancelAnimation,
+    Easing,
     SharedValue,
     useAnimatedStyle,
     useSharedValue,
     withRepeat,
-    withSequence,
     withTiming,
 } from 'react-native-reanimated';
 
@@ -32,10 +33,11 @@ const useSkeletonAnimation = () => {
 
     useEffect(() => {
         opacity.value = withRepeat(
-            withSequence(withTiming(1, { duration: 1000 }), withTiming(0.5, { duration: 1000 })),
+            withTiming(1, { duration: 700, easing: Easing.inOut(Easing.ease) }),
             -1,
             true,
         );
+        return () => cancelAnimation(opacity);
     }, []);
 
     return opacity;
@@ -61,11 +63,15 @@ export const HorizontalListSkeleton = () => {
     const opacity = useSkeletonAnimation();
 
     return (
-        <View className="mb-6">
+        <View className="mb-2 mt-6">
             <SkeletonBox opacity={opacity} className="mb-3 ml-1 h-5 w-40 rounded" />
-            <View className="flex-row gap-3">
+            <View className="flex-row gap-2">
                 {[1, 2, 3, 4].map((i) => (
-                    <SkeletonBox key={i} opacity={opacity} className="h-48 w-32 rounded-xl" />
+                    <SkeletonBox
+                        key={i}
+                        opacity={opacity}
+                        className="aspect-[3/5] w-28 rounded-xl"
+                    />
                 ))}
             </View>
         </View>

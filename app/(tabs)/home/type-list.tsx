@@ -1,4 +1,4 @@
-import MovieListItem from '@/components/MovieListItem';
+import MediaListItem from '@/components/MediaListItem';
 import { Colors } from '@/constants/Colors';
 import { useGlobalError } from '@/context/GlobalErrorContext';
 import { MediaType } from '@/models/TVShowVM';
@@ -66,7 +66,7 @@ export default function MoviesScreen() {
                 contentContainerStyle={{ gap: 8, padding: 8 }}
                 columnWrapperStyle={{ gap: 8 }}
                 renderItem={({ item }) => (
-                    <MovieListItem data={item} type={type} isGridView={true} />
+                    <MediaListItem data={item} type={type} isGridView={true} />
                 )}
                 onEndReached={() => {
                     fetchNextPage();

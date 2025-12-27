@@ -1,3 +1,4 @@
+import { Colors } from '@/constants/Colors';
 import { TrendingItemVM } from '@/models/TrendingItemVM';
 import {
     BLURHASH_TRANSITION,
@@ -31,7 +32,11 @@ const TrendingListItem = ({ data }: TrendingListItemProps) => {
                 <View style={{ borderRadius: 16, overflow: 'hidden' }}>
                     <Image
                         source={getTMDBImageSource(data.backdrop_path, 'w780')}
-                        style={{ width: '100%', aspectRatio: 5 / 3 }}
+                        style={{
+                            width: '100%',
+                            aspectRatio: 5 / 3,
+                            backgroundColor: Colors.imgBackground,
+                        }}
                         contentFit="cover"
                         placeholderContentFit="cover"
                         placeholder={getBlurHash(data.backdrop_path)}

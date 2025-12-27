@@ -17,6 +17,7 @@ import Animated, {
 import EpisodeItem from './EpisodeItem';
 import { EpisodeListSkeleton } from './UI/Skeletons';
 import { useGlobalError } from '@/context/GlobalErrorContext';
+import { Colors } from '@/constants/Colors';
 
 interface Props {
     tvShowId: number;
@@ -151,7 +152,7 @@ const SeasonAccordionItem = ({ tvShowId, seasonSummary }: Props) => {
                                 width: 64,
                                 aspectRatio: 3 / 4,
                                 borderRadius: 6,
-                                backgroundColor: '#262626',
+                                backgroundColor: Colors.imgBackground,
                                 opacity: isSeasonFullyWatched ? 0.5 : 1,
                             }}
                         />

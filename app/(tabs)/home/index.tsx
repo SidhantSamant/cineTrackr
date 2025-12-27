@@ -1,22 +1,11 @@
 import HomeHorizontalList from '@/components/HomeHorizonalList';
 import TrendingList from '@/components/TrendingList';
-import { TrendingSkeleton, HorizontalListSkeleton } from '@/components/UI/Skeletons';
+import { HorizontalListSkeleton, TrendingSkeleton } from '@/components/UI/Skeletons';
 import { Colors } from '@/constants/Colors';
-import { getCategorySlug, SectionHeadings } from '@/utils/dashBoardHelper';
+import { getCategorySlug, HomeListSections } from '@/utils/homeScreenHelper';
 import { fetchListData, fetchTrendingList } from '@/utils/tmdbService';
 import { useQueries, useQuery } from '@tanstack/react-query';
 import { ScrollView, View } from 'react-native';
-
-const SECTIONS = [
-    { heading: SectionHeadings.NowPlayingMovies, type: 'movie' as const },
-    { heading: SectionHeadings.PopularMovies, type: 'movie' as const },
-    { heading: SectionHeadings.TopRatedMovies, type: 'movie' as const },
-    { heading: SectionHeadings.UpcomingMovies, type: 'movie' as const },
-    { heading: SectionHeadings.AiringTodayTV, type: 'tv' as const },
-    { heading: SectionHeadings.PopularTV, type: 'tv' as const },
-    { heading: SectionHeadings.TopRatedTV, type: 'tv' as const },
-    { heading: SectionHeadings.OnTheAirTV, type: 'tv' as const },
-];
 
 export default function HomeScreen() {
     const { data: trendingList, isLoading: isTrendingLoading } = useQuery({
@@ -25,7 +14,7 @@ export default function HomeScreen() {
     });
 
     const sectionQueries = useQueries({
-        queries: SECTIONS.map((section) => ({
+        queries: HomeListSections.map((section) => ({
             queryKey: ['ListData', section.type, section.heading],
             queryFn: () =>
                 fetchListData({
@@ -46,10 +35,14 @@ export default function HomeScreen() {
                 )}
 
                 {sectionQueries.map((query, index) => {
-                    const section = SECTIONS[index];
+                    const section = HomeListSections[index];
 
                     if (query.isLoading) {
                         return <HorizontalListSkeleton key={index} />;
+                    }
+
+                    if (query.isError) {
+                        return null;
                     }
 
                     return (

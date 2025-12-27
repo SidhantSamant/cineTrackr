@@ -1,4 +1,3 @@
-import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { ThemeProvider } from '@react-navigation/native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useFonts } from 'expo-font';
@@ -14,6 +13,18 @@ import '@/global.css';
 import { GlobalErrorProvider } from '@/context/GlobalErrorContext';
 import { Colors } from '@/constants/Colors';
 import * as SystemUI from 'expo-system-ui';
+import { Ionicons } from '@expo/vector-icons';
+
+SplashScreen.preventAutoHideAsync();
+
+SplashScreen.setOptions({
+    duration: 400,
+    fade: true,
+});
+
+export const unstable_settings = {
+    initialRouteName: '(tabs)',
+};
 
 export const queryClient = new QueryClient({
     defaultOptions: {
@@ -27,16 +38,10 @@ export const queryClient = new QueryClient({
     },
 });
 
-export const unstable_settings = {
-    initialRouteName: '(tabs)',
-};
-
-SplashScreen.preventAutoHideAsync();
-
 export default function RootLayout() {
     const [loaded, error] = useFonts({
         SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-        ...FontAwesome.font,
+        ...Ionicons.font,
     });
 
     useEffect(() => {

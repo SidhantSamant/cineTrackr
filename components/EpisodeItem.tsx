@@ -1,3 +1,4 @@
+import { Colors } from '@/constants/Colors';
 import { EpisodeVM } from '@/models/SeasonVM';
 import { BLURHASH_TRANSITION, getBlurHash, getTMDBImageSource } from '@/utils/imgHelper';
 import { getRatingColor } from '@/utils/uiHelper';
@@ -35,7 +36,7 @@ const EpisodeItem = ({ episode, isWatched, onToggle }: Props) => {
                         width: 102,
                         height: 77,
                         borderRadius: 8,
-                        backgroundColor: '#262626',
+                        backgroundColor: Colors.imgBackground,
                         opacity: isWatched ? 0.6 : 1,
                     }}
                 />

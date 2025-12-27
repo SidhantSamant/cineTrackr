@@ -1,3 +1,4 @@
+import { Colors } from '@/constants/Colors';
 import { CastVM } from '@/models/BaseMediaVM';
 import { BLURHASH_TRANSITION, getBlurHash, getTMDBImageSource } from '@/utils/imgHelper';
 import { Image } from 'expo-image';
@@ -27,6 +28,7 @@ const styles = StyleSheet.create({
         width: 80,
         height: 80,
         borderRadius: 80,
+        backgroundColor: Colors.imgBackground,
     },
 });
 export default CastItem;

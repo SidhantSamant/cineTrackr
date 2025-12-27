@@ -14,7 +14,6 @@ export const getDetails = async (type: MediaType, id: number) => {
         console.log(error);
     }
 };
-
 export const fetchListData = async ({
     pageParam,
     type,
@@ -25,8 +24,19 @@ export const fetchListData = async ({
     slug: string;
 }) => {
     try {
+        let endpoint = `${type}/${slug}`;
+        let params = `language=en-US&page=${pageParam}`;
+
+        if (slug === 'trending_anime') {
+            endpoint = `discover/tv`;
+            params += `&with_genres=16&with_original_language=ja&sort_by=popularity.desc`;
+        } else if (slug === 'top_rated_anime') {
+            endpoint = `discover/tv`;
+            params += `&with_genres=16&with_original_language=ja&sort_by=vote_average.desc&vote_count.gte=250`;
+        }
+
         const data = await tmdbClient.get<MovieResponse | TVSeriesResponse>(
-            `${type}/${slug}?language=en-US&page=${pageParam}`,
+            `${endpoint}?${params}`,
         );
         return data?.results;
     } catch (error) {

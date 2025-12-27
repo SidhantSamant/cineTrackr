@@ -1,10 +1,10 @@
 import { MovieVM } from '@/models/MovieVM';
 import { MediaType, TVShowVM } from '@/models/TVShowVM';
-import { getCategorySlug, SectionHeadings } from '@/utils/dashBoardHelper';
+import { getCategorySlug, SectionHeadings } from '@/utils/homeScreenHelper';
 import Entypo from '@expo/vector-icons/Entypo';
 import { router } from 'expo-router';
 import { FlatList, Pressable, Text, View } from 'react-native';
-import MovieListItem from './MovieListItem';
+import MediaListItem from './MediaListItem';
 
 type HomeListProps = {
     ListHeading: string;
@@ -49,7 +49,7 @@ export default function HomeHorizontalList({
                     gap: 8,
                 }}
                 renderItem={({ item }) => (
-                    <MovieListItem data={item} type={listType} isGridView={false} />
+                    <MediaListItem data={item} type={listType} isGridView={false} />
                 )}
             />
         </View>

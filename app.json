@@ -9,7 +9,19 @@
             "output": "static",
             "favicon": "./assets/favicon.png"
         },
-        "plugins": ["expo-router", "expo-web-browser", "expo-font"],
+        "plugins": [
+            "expo-router",
+            "expo-web-browser",
+            "expo-font",
+            [
+                "expo-splash-screen",
+                {
+                    "image": "./assets/icon.png",
+                    "resizeMode": "contain",
+                    "backgroundColor": "#313130"
+                }
+            ]
+        ],
         "experiments": {
             "typedRoutes": true,
             "tsconfigPaths": true
@@ -21,7 +33,7 @@
         "splash": {
             "image": "./assets/splash.png",
             "resizeMode": "contain",
-            "backgroundColor": "#121212"
+            "backgroundColor": "#313130"
         },
         "assetBundlePatterns": ["**/*"],
         "ios": {
@@ -30,9 +42,9 @@
         "android": {
             "adaptiveIcon": {
                 "foregroundImage": "./assets/adaptive-icon.png",
-                "backgroundColor": "#ffffff"
+                "backgroundColor": "#313130"
             },
-            "package": "com.sidhant1920.cineTrackr"
+            "package": "com.sidhantsamant.cinetrackr"
         }
     }
 }
