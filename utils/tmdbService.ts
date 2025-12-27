@@ -29,10 +29,10 @@ export const fetchListData = async ({
 
         if (slug === 'trending_anime') {
             endpoint = `discover/tv`;
-            params += `&with_genres=16&with_original_language=ja&sort_by=popularity.desc`;
+            params += `&with_genres=16&with_original_language=ja&sort_by=popularity.desc&include_adult=false`;
         } else if (slug === 'top_rated_anime') {
             endpoint = `discover/tv`;
-            params += `&with_genres=16&with_original_language=ja&sort_by=vote_average.desc&vote_count.gte=250`;
+            params += `&with_genres=16&with_original_language=ja&sort_by=vote_average.desc&vote_count.gte=250&include_adult=false`;
         }
 
         const data = await tmdbClient.get<MovieResponse | TVSeriesResponse>(

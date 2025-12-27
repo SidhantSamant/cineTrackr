@@ -4,6 +4,26 @@
         "slug": "cineTrackr",
         "version": "1.0.0",
         "scheme": "cineTrackr",
+        "orientation": "portrait",
+        "icon": "./assets/icon.png",
+        "userInterfaceStyle": "dark",
+        "backgroundColor": "#121212",
+        "splash": {
+            "image": "./assets/splash.png",
+            "resizeMode": "contain",
+            "backgroundColor": "#121212"
+        },
+        "assetBundlePatterns": ["**/*"],
+        "ios": {
+            "supportsTablet": true
+        },
+        "android": {
+            "adaptiveIcon": {
+                "foregroundImage": "./assets/adaptive-icon.png",
+                "backgroundColor": "#121212"
+            },
+            "package": "com.sidhantsamant.cinetrackr"
+        },
         "web": {
             "bundler": "metro",
             "output": "static",
@@ -18,33 +38,13 @@
                 {
                     "image": "./assets/icon.png",
                     "resizeMode": "contain",
-                    "backgroundColor": "#313130"
+                    "backgroundColor": "#121212"
                 }
             ]
         ],
         "experiments": {
             "typedRoutes": true,
             "tsconfigPaths": true
-        },
-        "orientation": "portrait",
-        "icon": "./assets/icon.png",
-        "userInterfaceStyle": "dark",
-        "backgroundColor": "#121212",
-        "splash": {
-            "image": "./assets/splash.png",
-            "resizeMode": "contain",
-            "backgroundColor": "#313130"
-        },
-        "assetBundlePatterns": ["**/*"],
-        "ios": {
-            "supportsTablet": true
-        },
-        "android": {
-            "adaptiveIcon": {
-                "foregroundImage": "./assets/adaptive-icon.png",
-                "backgroundColor": "#313130"
-            },
-            "package": "com.sidhantsamant.cinetrackr"
         }
     }
 }
