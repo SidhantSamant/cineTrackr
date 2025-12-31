@@ -103,4 +103,6 @@ const EpisodeItem = ({ episode, isWatched, onToggle }: Props) => {
     );
 };
 
-export default React.memo(EpisodeItem);
+export default React.memo(EpisodeItem, (prevProps, nextProps) => {
+    return prevProps.isWatched === nextProps.isWatched;
+});

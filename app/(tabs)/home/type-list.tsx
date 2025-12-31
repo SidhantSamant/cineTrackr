@@ -63,7 +63,7 @@ export default function MoviesScreen() {
                 data={listData}
                 numColumns={3}
                 keyExtractor={(item, index) => index.toString()}
-                contentContainerStyle={{ gap: 8, padding: 8 }}
+                contentContainerStyle={{ gap: 8, padding: 8, flexGrow: 1 }}
                 columnWrapperStyle={{ gap: 8 }}
                 renderItem={({ item }) => (
                     <MediaListItem data={item} type={type} isGridView={true} />
@@ -75,7 +75,7 @@ export default function MoviesScreen() {
                 onRefresh={refetch}
                 ListFooterComponent={() =>
                     isFetchingNextPage && (
-                        <View>
+                        <View className="pb-6">
                             <ActivityIndicator size="large" color={Colors.primary} />
                         </View>
                     )

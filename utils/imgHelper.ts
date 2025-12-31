@@ -11,7 +11,7 @@ export const getBlurHash = (imageUrl?: string | null) => {
     return imageUrl ? BLURHASH : null;
 };
 
-type TMDBImageSize = 'w185' | 'w342' | 'w500' | 'w780' | 'w1280' | 'original';
+type TMDBImageSize = 'w92' | 'w185' | 'w342' | 'w500' | 'w780' | 'w1280' | 'original';
 
 export const getTMDBImageUrl = (path?: string | null, size: TMDBImageSize = 'w342') => {
     return path ? `https://image.tmdb.org/t/p/${size}${path}` : null;

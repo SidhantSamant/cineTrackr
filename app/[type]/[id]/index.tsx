@@ -2,6 +2,7 @@ import CastItem from '@/components/CastItem';
 import HomeHorizontalList from '@/components/HomeHorizonalList';
 import ActionButton from '@/components/UI/ActionButton';
 import { HorizontalListSkeleton } from '@/components/UI/Skeletons';
+import WatchProviders from '@/components/WatchProviders.tsx';
 import { Colors } from '@/constants/Colors';
 import { useGlobalError } from '@/context/GlobalErrorContext';
 import { CastVM } from '@/models/BaseMediaVM';
@@ -156,7 +157,7 @@ const MediaDetailScreen = () => {
     const meta = type === 'movie' ? '•   ' + formatMovieRuntime(data) : formatTVSeasonsMeta(data);
     const formattedDate = type === 'movie' ? getMovieYear(data) : formatTVYear(data);
     const title = type === 'movie' ? data.title : data.name;
-
+    const providers = data?.['watch/providers']?.results;
     const ratingColor = getRatingColor(data.vote_average);
 
     return (
@@ -289,7 +290,7 @@ const MediaDetailScreen = () => {
                         <Pressable
                             className="mb-6 flex-row items-center justify-between border-b border-neutral-800 pb-4 active:opacity-60"
                             onPress={() =>
-                                router.push({
+                                router.navigate({
                                     pathname: `/[type]/[id]/episode-guide`,
                                     params: { type, id, title: data.name },
                                 })
@@ -369,6 +370,8 @@ const MediaDetailScreen = () => {
                             />
                         </View>
                     )}
+
+                    {providers && <WatchProviders providers={providers} countryCode="IN" />}
 
                     {/* Collections / Horizontal Lists */}
                     <View className="-mx-4 gap-2 pl-4">

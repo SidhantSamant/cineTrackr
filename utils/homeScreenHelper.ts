@@ -3,7 +3,7 @@ export enum SectionHeadings {
     PopularTV = 'Trending Series',
     TrendingAnime = 'Trending Anime',
     AiringTodayTV = 'New Episodes',
-    UpcomingMovies = 'Coming Soon',
+    UpcomingMovies = 'Upcoming Movies',
     TopRatedAnime = 'Top Rated Anime',
     TopRatedTV = 'Top Rated Series',
     TopRatedMovies = 'Top Rated Movies',

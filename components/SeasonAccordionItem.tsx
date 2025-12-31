@@ -144,7 +144,7 @@ const SeasonAccordionItem = ({ tvShowId, seasonSummary }: Props) => {
                 <View className="flex-1 flex-row items-center gap-4">
                     <View className="shadow-sm shadow-black">
                         <Image
-                            source={getTMDBImageSource(seasonSummary.poster_path)}
+                            source={getTMDBImageSource(seasonSummary.poster_path, 'w185')}
                             placeholder={getBlurHash(seasonSummary.poster_path)}
                             transition={300}
                             contentFit="cover"

@@ -56,30 +56,29 @@ const ProfileScreen = () => {
                 </Pressable>
             </View>
 
-            <View className="mt-10">
+            {/* <View className="mt-10">
                 <Text className="mb-2 px-5 text-xs font-bold uppercase tracking-wider text-neutral-500">
                     General
                 </Text>
                 <View className="border-b border-t border-neutral-800 bg-neutral-900/50">
                     <MenuItem icon="moon-outline" label="Appearance" />
-                    {/* <MenuItem icon="notifications-outline" label="Notifications" />
-                    <MenuItem icon="globe-outline" label="Language" /> */}
+                   <MenuItem icon="notifications-outline" label="Notifications" />
+                    <MenuItem icon="globe-outline" label="Language" /> 
                 </View>
 
                 <Text className="mb-2 mt-6 px-5 text-xs font-bold uppercase tracking-wider text-neutral-500">
                     Support & About
                 </Text>
                 <View className="border-b border-t border-neutral-800 bg-neutral-900/50">
-                    {/* <MenuItem icon="help-circle-outline" label="Help Center" /> */}
+                 <MenuItem icon="help-circle-outline" label="Help Center" /> 
                     <MenuItem icon="shield-checkmark-outline" label="Privacy Policy" />
                     <MenuItem icon="document-text-outline" label="Terms of Service" />
                 </View>
 
-                {/* Version Info */}
-                {/* <View className="mb-10 mt-8 items-center">
+                 <View className="mb-10 mt-8 items-center">
                     <Text className="text-xs text-neutral-600">Version 1.0.2 (Build 450)</Text>
-                </View> */}
-            </View>
+                </View> *
+            </View> */}
         </View>
     );
 };
