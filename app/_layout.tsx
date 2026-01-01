@@ -1,19 +1,18 @@
+import { Ionicons } from '@expo/vector-icons';
 import { ThemeProvider } from '@react-navigation/native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
-import 'react-native-reanimated';
-export { ErrorBoundary } from 'expo-router';
-// import { useReactQueryDevTools } from '@dev-plugins/react-query';
-import { MyDarkTheme } from '@/constants/Theme';
-import '@/global.css';
-import { GlobalErrorProvider } from '@/context/GlobalErrorContext';
-import { Colors } from '@/constants/Colors';
 import * as SystemUI from 'expo-system-ui';
-import { Ionicons } from '@expo/vector-icons';
+import { useEffect } from 'react';
+import { Colors } from '@/constants/Colors';
+import { MyDarkTheme } from '@/constants/Theme';
+import { GlobalErrorProvider } from '@/context/GlobalErrorContext';
+import '@/global.css';
+import { supabase } from '@/lib/supabase';
+import { useAuthStore } from '@/store/useAuthStore';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -39,14 +38,30 @@ export const queryClient = new QueryClient({
 });
 
 export default function RootLayout() {
-    const [loaded, error] = useFonts({
+    const setSession = useAuthStore((state) => state.setSession);
+
+    const [loaded, fontError] = useFonts({
         SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
         ...Ionicons.font,
     });
 
     useEffect(() => {
-        if (error) throw error;
-    }, [error]);
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            setSession(session);
+        });
+
+        const {
+            data: { subscription },
+        } = supabase.auth.onAuthStateChange((_event, session) => {
+            setSession(session);
+        });
+
+        return () => subscription.unsubscribe();
+    }, [setSession]);
+
+    useEffect(() => {
+        if (fontError) throw fontError;
+    }, [fontError]);
 
     useEffect(() => {
         if (loaded) {
@@ -55,22 +70,20 @@ export default function RootLayout() {
         }
     }, [loaded]);
 
-    if (!loaded) {
-        return null;
-    }
+    if (!loaded) return null;
 
     return <RootLayoutNav />;
 }
 
 function RootLayoutNav() {
-    // useReactQueryDevTools(queryClient);
     return (
         <QueryClientProvider client={queryClient}>
             <ThemeProvider value={MyDarkTheme}>
-                <StatusBar style={'light'} />
+                <StatusBar style="light" />
                 <GlobalErrorProvider>
                     <Stack screenOptions={{ contentStyle: { backgroundColor: Colors.background } }}>
                         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
                         <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
                         <Stack.Screen
                             name="[type]/[id]"

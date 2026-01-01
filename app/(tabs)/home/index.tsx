@@ -1,4 +1,5 @@
-import HomeHorizontalList from '@/components/HomeHorizonalList';
+import HomeHorizontalList from '@/components/HorizontalMediaList';
+import HomeHorizontalListSection from '@/components/MediaListSection';
 import TrendingList from '@/components/TrendingList';
 import { HorizontalListSkeleton, TrendingSkeleton } from '@/components/UI/Skeletons';
 import { Colors } from '@/constants/Colors';
@@ -34,15 +35,13 @@ export default function HomeScreen() {
                     <TrendingList listData={trendingList} />
                 )}
 
+                <HomeHorizontalListSection listType="trending" />
+
                 {sectionQueries.map((query, index) => {
                     const section = HomeListSections[index];
 
-                    if (query.isLoading) {
+                    if (query.isLoading || query.isError) {
                         return <HorizontalListSkeleton key={index} />;
-                    }
-
-                    if (query.isError) {
-                        return null;
                     }
 
                     return (
@@ -54,6 +53,8 @@ export default function HomeScreen() {
                         />
                     );
                 })}
+
+                <HomeHorizontalListSection listType="top_rated" />
 
                 <View className="h-8" />
             </ScrollView>

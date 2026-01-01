@@ -1,12 +1,13 @@
 import { MovieVM } from '@/models/MovieVM';
 import { MediaType, TVShowVM } from '@/models/TVShowVM';
 import { getCategorySlug, SectionHeadings } from '@/utils/homeScreenHelper';
-import Entypo from '@expo/vector-icons/Entypo';
+import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { FlatList, Pressable, Text, View } from 'react-native';
 import MediaListItem from './MediaListItem';
+import { Colors } from '@/constants/Colors';
 
-type HomeListProps = {
+type HorizontalMediaListProps = {
     ListHeading: string;
     listType: MediaType;
     listData: (MovieVM | undefined)[] | (TVShowVM | undefined)[] | undefined;
@@ -18,26 +19,29 @@ export default function HomeHorizontalList({
     listType,
     listData,
     showMore = true,
-}: HomeListProps) {
+}: HorizontalMediaListProps) {
     return (
         <View>
             <Pressable
-                className={'flex-row items-center pb-2 pt-6'}
+                className="flex-row items-center pb-3 pt-6 active:opacity-70"
                 onPress={() =>
-                    showMore
-                        ? router.navigate({
-                              pathname: '/home/type-list',
-                              params: {
-                                  type: listType,
-                                  slug: getCategorySlug(ListHeading as SectionHeadings),
-                                  title: ListHeading,
-                              },
-                          })
-                        : null
+                    router.push({
+                        pathname: '/home/type-list',
+                        params: {
+                            type: listType,
+                            slug: getCategorySlug(ListHeading as SectionHeadings),
+                            title: ListHeading,
+                        },
+                    })
                 }>
-                <Text className="text-lg font-bold text-white">{ListHeading}</Text>
+                <Text
+                    className={`text-lg font-bold text-white ${
+                        showMore && 'uppercase tracking-tight'
+                    }`}>
+                    {ListHeading}
+                </Text>
 
-                {showMore && <Entypo name="chevron-right" size={24} color="white" />}
+                {showMore && <Ionicons name="chevron-forward" size={16} color={Colors.primary} />}
             </Pressable>
 
             <FlatList<MovieVM | TVShowVM>
@@ -45,9 +49,7 @@ export default function HomeHorizontalList({
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 keyExtractor={(item) => item.id.toString()}
-                contentContainerStyle={{
-                    gap: 8,
-                }}
+                contentContainerStyle={{ gap: 8 }}
                 renderItem={({ item }) => (
                     <MediaListItem data={item} type={listType} isGridView={false} />
                 )}

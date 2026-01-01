@@ -1,5 +1,5 @@
 import CastItem from '@/components/CastItem';
-import HomeHorizontalList from '@/components/HomeHorizonalList';
+import HomeHorizontalList from '@/components/HorizontalMediaList';
 import ActionButton from '@/components/UI/ActionButton';
 import { HorizontalListSkeleton } from '@/components/UI/Skeletons';
 import WatchProviders from '@/components/WatchProviders.tsx';

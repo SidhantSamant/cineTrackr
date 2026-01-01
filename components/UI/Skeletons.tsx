@@ -59,12 +59,12 @@ export const TrendingSkeleton = () => {
     );
 };
 
-export const HorizontalListSkeleton = () => {
+export const HorizontalListSkeleton = ({ hasTitle = true }: { hasTitle?: boolean }) => {
     const opacity = useSkeletonAnimation();
 
     return (
         <View className="mb-2 mt-6">
-            <SkeletonBox opacity={opacity} className="mb-3 ml-1 h-6 w-40 rounded" />
+            {hasTitle && <SkeletonBox opacity={opacity} className="mb-3 ml-1 h-6 w-40 rounded" />}
             <View className="flex-row gap-2">
                 {[1, 2, 3, 4].map((i) => (
                     <SkeletonBox
