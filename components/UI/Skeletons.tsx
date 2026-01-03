@@ -65,12 +65,47 @@ export const HorizontalListSkeleton = ({ hasTitle = true }: { hasTitle?: boolean
     return (
         <View className="mb-2 mt-6">
             {hasTitle && <SkeletonBox opacity={opacity} className="mb-3 ml-1 h-6 w-40 rounded" />}
-            <View className="flex-row gap-2">
+            <View className="flex-row gap-x-2">
                 {[1, 2, 3, 4].map((i) => (
                     <SkeletonBox
                         key={i}
                         opacity={opacity}
-                        className="aspect-[3/5] w-28 rounded-xl"
+                        className="aspect-[3/5] w-[100px] rounded-2xl"
+                    />
+                ))}
+            </View>
+        </View>
+    );
+};
+
+export const MediaListSkeleton = ({ hasTitle = true }: { hasTitle?: boolean }) => {
+    const opacity = useSkeletonAnimation();
+
+    return (
+        <View>
+            {/* Header Skeleton */}
+            {hasTitle && (
+                <View className="flex-row items-center justify-between pb-3 pt-6">
+                    <SkeletonBox opacity={opacity} className="h-6 w-32 rounded" />
+                    <View className="flex-row gap-x-1.5">
+                        {[1, 2, 3].map((i) => (
+                            <SkeletonBox
+                                key={i}
+                                opacity={opacity}
+                                className="h-7 w-16 rounded-full"
+                            />
+                        ))}
+                    </View>
+                </View>
+            )}
+
+            {/* List Skeleton */}
+            <View className="flex-row gap-x-2">
+                {[1, 2, 3, 4].map((i) => (
+                    <SkeletonBox
+                        key={i}
+                        opacity={opacity}
+                        className="aspect-[3/5] w-[100px] rounded-2xl"
                     />
                 ))}
             </View>

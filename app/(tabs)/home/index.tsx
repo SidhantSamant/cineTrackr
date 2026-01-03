@@ -1,11 +1,9 @@
-import HomeHorizontalList from '@/components/HorizontalMediaList';
-import HomeHorizontalListSection from '@/components/MediaListSection';
+import MediaListSection from '@/components/MediaListSection';
 import TrendingList from '@/components/TrendingList';
-import { HorizontalListSkeleton, TrendingSkeleton } from '@/components/UI/Skeletons';
+import { TrendingSkeleton } from '@/components/UI/Skeletons';
 import { Colors } from '@/constants/Colors';
-import { getCategorySlug, HomeListSections } from '@/utils/homeScreenHelper';
-import { fetchListData, fetchTrendingList } from '@/utils/tmdbService';
-import { useQueries, useQuery } from '@tanstack/react-query';
+import { fetchTrendingList } from '@/utils/tmdbService';
+import { useQuery } from '@tanstack/react-query';
 import { ScrollView, View } from 'react-native';
 
 export default function HomeScreen() {
@@ -14,17 +12,17 @@ export default function HomeScreen() {
         queryFn: fetchTrendingList,
     });
 
-    const sectionQueries = useQueries({
-        queries: HomeListSections.map((section) => ({
-            queryKey: ['ListData', section.type, section.heading],
-            queryFn: () =>
-                fetchListData({
-                    pageParam: 1,
-                    type: section.type,
-                    slug: getCategorySlug(section.heading),
-                }),
-        })),
-    });
+    // const sectionQueries = useQueries({
+    //     queries: HomeListSections.map((section) => ({
+    //         queryKey: ['ListData', section.type, section.heading],
+    //         queryFn: () =>
+    //             fetchListData({
+    //                 pageParam: 1,
+    //                 type: section.type,
+    //                 slug: getCategorySlug(section.heading),
+    //             }),
+    //     })),
+    // });
 
     return (
         <View className="flex-1" style={{ backgroundColor: Colors.background }}>
@@ -35,9 +33,11 @@ export default function HomeScreen() {
                     <TrendingList listData={trendingList} />
                 )}
 
-                <HomeHorizontalListSection listType="trending" />
+                <MediaListSection listType="trending" />
+                <MediaListSection listType="hidden_gems" />
+                <MediaListSection listType="top_rated" />
 
-                {sectionQueries.map((query, index) => {
+                {/* {sectionQueries.map((query, index) => {
                     const section = HomeListSections[index];
 
                     if (query.isLoading || query.isError) {
@@ -52,9 +52,7 @@ export default function HomeScreen() {
                             listData={query.data}
                         />
                     );
-                })}
-
-                <HomeHorizontalListSection listType="top_rated" />
+                })} */}
 
                 <View className="h-8" />
             </ScrollView>

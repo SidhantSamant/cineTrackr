@@ -74,11 +74,7 @@ export default function MoviesScreen() {
                 refreshing={isLoading && isFetchingNextPage}
                 onRefresh={refetch}
                 ListFooterComponent={() =>
-                    isFetchingNextPage && (
-                        <View className="pb-6">
-                            <ActivityIndicator size="large" color={Colors.primary} />
-                        </View>
-                    )
+                    isFetchingNextPage && <ActivityIndicator size="large" color={Colors.primary} />
                 }
             />
         </View>

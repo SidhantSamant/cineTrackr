@@ -15,7 +15,7 @@ type MediaListItemProps = {
 const MediaListItem = ({ isGridView, data, type }: MediaListItemProps) => {
     return (
         <Pressable
-            style={{ width: isGridView ? '33%' : 100 }}
+            style={{ width: isGridView ? '32.6%' : 100 }}
             onPress={() => router.navigate(`/${type}/${data?.id}`)}>
             <Image
                 source={getTMDBImageSource(data?.poster_path)}

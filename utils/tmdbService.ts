@@ -14,6 +14,36 @@ export const getDetails = async (type: MediaType, id: number) => {
         console.log(error);
     }
 };
+// export const fetchListData = async ({
+//     pageParam,
+//     type,
+//     slug,
+// }: {
+//     pageParam: number;
+//     type: MediaType;
+//     slug: string;
+// }) => {
+//     try {
+//         let endpoint = `${type}/${slug}`;
+//         let params = `language=en-US&page=${pageParam}`;
+
+//         if (slug === 'trending_anime') {
+//             endpoint = `discover/tv`;
+//             params += `&with_genres=16&with_original_language=ja&sort_by=popularity.desc&include_adult=false`;
+//         } else if (slug === 'top_rated_anime') {
+//             endpoint = `discover/tv`;
+//             params += `&with_genres=16&with_original_language=ja&sort_by=vote_average.desc&vote_count.gte=250&include_adult=false`;
+//         }
+
+//         const data = await tmdbClient.get<MovieResponse | TVSeriesResponse>(
+//             `${endpoint}?${params}`,
+//         );
+//         return data?.results;
+//     } catch (error) {
+//         console.log(error);
+//     }
+// };
+
 export const fetchListData = async ({
     pageParam,
     type,
@@ -25,22 +55,71 @@ export const fetchListData = async ({
 }) => {
     try {
         let endpoint = `${type}/${slug}`;
-        let params = `language=en-US&page=${pageParam}`;
+        let params = new URLSearchParams({
+            language: 'en-US',
+            page: pageParam.toString(),
+            include_adult: 'false',
+        });
 
-        if (slug === 'trending_anime') {
-            endpoint = `discover/tv`;
-            params += `&with_genres=16&with_original_language=ja&sort_by=popularity.desc&include_adult=false`;
-        } else if (slug === 'top_rated_anime') {
-            endpoint = `discover/tv`;
-            params += `&with_genres=16&with_original_language=ja&sort_by=vote_average.desc&vote_count.gte=250&include_adult=false`;
+        const isAnime = slug.includes('anime');
+        const isHiddenGem = slug.includes('hidden_gems');
+
+        if (isAnime || isHiddenGem) {
+            endpoint = `discover/${type}`;
+            params.append('sort_by', 'popularity.desc');
+
+            if (isAnime) {
+                params.append('with_genres', '16'); // Animation genre
+                params.append('with_original_language', 'ja'); // Japanese
+            }
+
+            // if (isHiddenGem) {
+            //     params.append('vote_count.gte', '150');
+            //     params.append('vote_count.lte', type === 'movie' ? '2000' : '1000');
+            //     params.append('vote_average.gte', type === 'movie' ? '7.2' : '8.0');
+            //     params.append('popularity.lte', type === 'movie' ? '70' : '40');
+            //     params.append('without_genres', '99,10763');
+            //     params.set('sort_by', 'vote_average.desc');
+            // }
+
+            if (isHiddenGem) {
+                params.append('vote_count.gte', '150');
+
+                const dateLimit = new Date();
+                dateLimit.setMonth(dateLimit.getMonth() - 6);
+                const formattedDate = dateLimit.toISOString().split('T')[0];
+                params.append(
+                    type === 'movie' ? 'release_date.lte' : 'first_air_date.lte',
+                    formattedDate,
+                );
+
+                if (isAnime) {
+                    params.append('vote_average.gte', '8.2');
+                    params.append('vote_count.lte', '800');
+                    params.append('popularity.lte', '35');
+                } else {
+                    params.append('vote_average.gte', '8.0');
+                    params.append('vote_count.lte', type === 'movie' ? '2000' : '1000');
+                    params.append('popularity.lte', type === 'movie' ? '70' : '40');
+                }
+
+                params.append('without_genres', '99,10763');
+                params.set('sort_by', 'vote_average.desc');
+            }
+
+            if (slug === 'top_rated_anime') {
+                params.set('sort_by', 'vote_average.desc');
+                params.set('vote_count.gte', '250');
+            }
         }
 
         const data = await tmdbClient.get<MovieResponse | TVSeriesResponse>(
             `${endpoint}?${params}`,
         );
-        return data?.results;
+        return data?.results || [];
     } catch (error) {
         console.log(error);
+        return [];
     }
 };
 
