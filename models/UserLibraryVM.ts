@@ -33,9 +33,3 @@ export default interface UserLibraryVM {
     updated_at: string;
     completed_at: string | null;
 }
-
-export type LibraryStatusVM = {
-    id: string;
-    status: MediaStatus;
-    is_favorite: boolean;
-};

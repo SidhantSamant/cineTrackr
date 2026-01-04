@@ -1,6 +1,6 @@
 import { useGlobalError } from '@/context/GlobalErrorContext';
 import { useLibraryMutations } from '@/hooks/useLibrary';
-import { LibraryStatusVM, MediaStatus, MediaType } from '@/models/UserLibraryVM';
+import UserLibraryVM, { MediaStatus, MediaType } from '@/models/UserLibraryVM';
 import { useAuthStore } from '@/store/useAuthStore';
 import { getYouTubeKey } from '@/utils/detailHelper';
 import { mapTmdbToLibraryItem } from '@/utils/mappers';
@@ -8,7 +8,7 @@ import { useRouter } from 'expo-router';
 import { Alert, Linking } from 'react-native';
 
 type Params = {
-    libraryItem?: LibraryStatusVM | null;
+    libraryItem?: Partial<UserLibraryVM> | null;
     data: any;
     type: MediaType;
 };
@@ -42,7 +42,7 @@ export const useMediaActions = ({ libraryItem, data, type }: Params) => {
         if (libraryItem) {
             if (libraryItem.status !== targetAction) {
                 updateStatus.mutate({
-                    id: libraryItem.id,
+                    id: libraryItem.id!,
                     status: targetAction,
                     tmdbId: data.id,
                     mediaType: type,
@@ -54,7 +54,7 @@ export const useMediaActions = ({ libraryItem, data, type }: Params) => {
                 });
             } else {
                 updateStatus.mutate({
-                    id: libraryItem.id,
+                    id: libraryItem.id!,
                     status: null,
                     tmdbId: data.id,
                     mediaType: type,
@@ -75,7 +75,7 @@ export const useMediaActions = ({ libraryItem, data, type }: Params) => {
         if (libraryItem) {
             if (libraryItem.status) {
                 toggleFavorite.mutate({
-                    id: libraryItem.id,
+                    id: libraryItem.id!,
                     isFavorite: !libraryItem.is_favorite,
                     tmdbId: data.id,
                     mediaType: type,

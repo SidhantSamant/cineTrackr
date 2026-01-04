@@ -70,7 +70,7 @@ export const useLibraryMutations = () => {
             queryClient.invalidateQueries({
                 queryKey: [QUERY_KEYS.itemStatus, vars.tmdb_id, vars.media_type],
             });
-            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.library] });
+            // queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.library] });
         },
     });
 
@@ -97,7 +97,7 @@ export const useLibraryMutations = () => {
             queryClient.invalidateQueries({
                 queryKey: [QUERY_KEYS.itemStatus, vars.tmdbId, vars.mediaType],
             });
-            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.library] });
+            // queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.library] });
         },
     });
 
@@ -137,7 +137,7 @@ export const useLibraryMutations = () => {
             queryClient.invalidateQueries({
                 queryKey: [QUERY_KEYS.itemStatus, vars.tmdbId, vars.mediaType],
             });
-            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.library] });
+            // queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.library] });
         },
     });
 
@@ -180,7 +180,7 @@ export const useLibraryMutations = () => {
             queryClient.invalidateQueries({
                 queryKey: [QUERY_KEYS.itemStatus, vars.tmdbId, vars.mediaType],
             });
-            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.library] });
+            // queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.library] });
         },
     });
 
