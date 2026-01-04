@@ -5,9 +5,11 @@ import { HorizontalListSkeleton } from '@/components/UI/Skeletons';
 import WatchProviders from '@/components/WatchProviders.tsx';
 import { Colors } from '@/constants/Colors';
 import { useGlobalError } from '@/context/GlobalErrorContext';
+import { useItemStatus } from '@/hooks/useLibrary';
+import { useMediaActions } from '@/hooks/useMediaActions';
+import { useParallaxScroll } from '@/hooks/useParallaxScroll';
 import { CastVM } from '@/models/BaseMediaVM';
 import { MediaType } from '@/models/TVShowVM';
-import { getYouTubeKey } from '@/utils/detailHelper';
 import { BLURHASH_TRANSITION, getBlurHash, getTMDBImageSource } from '@/utils/imgHelper';
 import { getDetails, getMovieCollection } from '@/utils/tmdbService';
 import {
@@ -23,25 +25,17 @@ import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useCallback, useEffect, useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import {
     ActivityIndicator,
-    Alert,
     FlatList,
-    Linking,
     Pressable,
     ScrollView,
     StyleSheet,
     Text,
     View,
 } from 'react-native';
-import Animated, {
-    Extrapolation,
-    interpolate,
-    useAnimatedScrollHandler,
-    useAnimatedStyle,
-    useSharedValue,
-} from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
 
 // CONSTANTS
 const IMG_HEIGHT = 200;
@@ -56,6 +50,12 @@ const MediaDetailScreen = () => {
         queryKey: [type, id],
         queryFn: () => getDetails(type, +id),
     });
+
+    const {
+        data: libraryItem,
+        isLoading: isLibraryItemLoading,
+        error: libraryItemError,
+    } = useItemStatus(+id, type);
 
     const {
         data: movieCollections,
@@ -78,7 +78,7 @@ const MediaDetailScreen = () => {
     }, [movieCollections]);
 
     useEffect(() => {
-        if (error || errorCollections || (!data && !isLoading)) {
+        if (error || libraryItemError || errorCollections || (!data && !isLoading)) {
             showError({
                 leftButtonText: !errorCollections ? 'Go Back' : undefined,
                 onLeftButtonPress: !errorCollections ? router.back : undefined,
@@ -86,66 +86,27 @@ const MediaDetailScreen = () => {
                 onRightButtonPress: !errorCollections ? refetch : refetchCollections,
             });
         }
-    }, [error, errorCollections, data, isLoading]);
+    }, [error, libraryItemError, errorCollections, data, isLoading]);
 
-    // Animations
-    const scrollOffset = useSharedValue(0);
-    const handleScroll = useAnimatedScrollHandler((event) => {
-        scrollOffset.value = event.contentOffset.y;
+    // Parallax Animations
+    const { onScroll, imageAnimatedStyle, headerAnimatedStyle } = useParallaxScroll({
+        imgHeight: IMG_HEIGHT,
+        headerHeight: HEADER_HEIGHT,
     });
 
-    const imageAnimatedStyle = useAnimatedStyle(() => ({
-        transform: [
-            {
-                translateY: interpolate(
-                    scrollOffset.value,
-                    [-IMG_HEIGHT, 0, IMG_HEIGHT],
-                    [-IMG_HEIGHT * 0.5, 0, IMG_HEIGHT * 0.5],
-                    Extrapolation.CLAMP,
-                ),
-            },
-            {
-                scale: interpolate(
-                    scrollOffset.value,
-                    [-IMG_HEIGHT, 0],
-                    [2, 1],
-                    Extrapolation.CLAMP,
-                ),
-            },
-        ],
-    }));
+    // Action Button Handlers
+    const { handleWatchTrailer, handleStatusPress, handleFavoritePress } = useMediaActions({
+        libraryItem,
+        data,
+        type,
+    });
 
-    const headerAnimatedStyle = useAnimatedStyle(() => ({
-        opacity: interpolate(
-            scrollOffset.value,
-            [IMG_HEIGHT - HEADER_HEIGHT - 40, IMG_HEIGHT - HEADER_HEIGHT],
-            [0, 1],
-            Extrapolation.CLAMP,
-        ),
-    }));
-
-    // Handlers
-    const handleWatchTrailer = useCallback(async () => {
-        const videoKey = getYouTubeKey(data?.videos?.results);
-        const query = `${data?.title ?? data?.name ?? ''} Trailer`;
-
-        try {
-            const url = videoKey
-                ? `https://www.youtube.com/watch?v=${videoKey}`
-                : `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
-
-            await Linking.openURL(url);
-        } catch (err) {
-            Alert.alert('Error', 'Could not open video link');
-        }
-    }, [data]);
-
-    if (isLoading) {
+    if (isLoading || isLibraryItemLoading) {
         return (
+            // <DetailScreenSkeleton />
             <View className="flex-1 items-center justify-center bg-[#121212]">
                 <ActivityIndicator size="large" color={Colors.primary} />
             </View>
-            // <DetailScreenSkeleton />
         );
     }
 
@@ -191,7 +152,7 @@ const MediaDetailScreen = () => {
 
             <Animated.ScrollView
                 className="flex-1 bg-[#121212]"
-                onScroll={handleScroll}
+                onScroll={onScroll}
                 showsVerticalScrollIndicator={false}
                 scrollEventThrottle={16}
                 overScrollMode="never">
@@ -271,14 +232,28 @@ const MediaDetailScreen = () => {
                                 onPress={handleWatchTrailer}
                             />
                             <ActionButton
-                                icon="bookmark-outline"
-                                label="Watchlist"
-                                onPress={() => console.log('Watchlist')}
+                                icon={libraryItem?.is_favorite ? 'heart' : 'heart-outline'}
+                                label="Favorite"
+                                onPress={handleFavoritePress}
                             />
                             <ActionButton
-                                icon="checkmark"
+                                icon={
+                                    libraryItem?.status === 'watchlist'
+                                        ? 'bookmark'
+                                        : 'bookmark-outline'
+                                }
+                                label="Watchlist"
+                                onPress={() => handleStatusPress('watchlist')}
+                            />
+                            <ActionButton
+                                // icon="checkmark"
+                                icon={
+                                    libraryItem?.status === 'completed'
+                                        ? 'checkmark-circle'
+                                        : 'checkmark-circle-outline'
+                                }
                                 label="Watched"
-                                onPress={() => console.log('Watched')}
+                                onPress={() => handleStatusPress('completed')}
                             />
                         </View>
                     </View>
