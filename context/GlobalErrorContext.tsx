@@ -1,7 +1,7 @@
-import { ErrorDialog } from '@/components/UI/ErrorDialog';
+import { DialogType, ErrorDialog } from '@/components/UI/ErrorDialog';
 import { createContext, ReactNode, useCallback, useContext, useState } from 'react';
 
-interface ErrorConfig {
+interface DialogConfig {
     title?: string;
     message?: string;
     leftButtonText?: string;
@@ -10,19 +10,22 @@ interface ErrorConfig {
     onRightButtonPress?: () => void;
 }
 
-interface ErrorContextType {
-    showError: (config: ErrorConfig | string) => void;
+interface DialogContextType {
+    showError: (config: DialogConfig | string) => void;
+    showWarning: (config: DialogConfig | string) => void;
 }
 
-const ErrorContext = createContext<ErrorContextType | undefined>(undefined);
+const DialogContext = createContext<DialogContextType | undefined>(undefined);
 
 export const GlobalErrorProvider = ({ children }: { children: ReactNode }) => {
     const [visible, setVisible] = useState(false);
-    const [config, setConfig] = useState<ErrorConfig>({ message: '' });
+    const [type, setType] = useState<DialogType>('error');
+    const [config, setConfig] = useState<DialogConfig>({ message: '' });
 
-    const showError = useCallback((input: ErrorConfig | string) => {
+    const showDialog = useCallback((input: DialogConfig | string, dialogType: DialogType) => {
         if (typeof input === 'string') {
-            setConfig({ title: 'Error', message: input });
+            const defaultTitle = dialogType === 'error' ? 'Error' : 'Warning';
+            setConfig({ title: defaultTitle, message: input });
         } else {
             setConfig({
                 title: input.title,
@@ -33,17 +36,33 @@ export const GlobalErrorProvider = ({ children }: { children: ReactNode }) => {
                 onRightButtonPress: input.onRightButtonPress,
             });
         }
+        setType(dialogType);
         setVisible(true);
     }, []);
 
-    const hideError = () => setVisible(false);
+    const showError = useCallback(
+        (input: DialogConfig | string) => {
+            showDialog(input, 'error');
+        },
+        [showDialog],
+    );
+
+    const showWarning = useCallback(
+        (input: DialogConfig | string) => {
+            showDialog(input, 'warning');
+        },
+        [showDialog],
+    );
+
+    const hideDialog = () => setVisible(false);
 
     return (
-        <ErrorContext.Provider value={{ showError }}>
+        <DialogContext.Provider value={{ showError, showWarning }}>
             {children}
 
             <ErrorDialog
                 visible={visible}
+                type={type}
                 title={config.title}
                 message={config.message}
                 leftButtonText={config.leftButtonText}
@@ -52,7 +71,7 @@ export const GlobalErrorProvider = ({ children }: { children: ReactNode }) => {
                     config.onRightButtonPress
                         ? () => {
                               config.onRightButtonPress?.();
-                              hideError();
+                              hideDialog();
                           }
                         : undefined
                 }
@@ -60,18 +79,18 @@ export const GlobalErrorProvider = ({ children }: { children: ReactNode }) => {
                     config.onLeftButtonPress
                         ? () => {
                               config.onLeftButtonPress?.();
-                              hideError();
+                              hideDialog();
                           }
-                        : hideError
+                        : hideDialog
                 }
             />
-        </ErrorContext.Provider>
+        </DialogContext.Provider>
     );
 };
 
 // Custom Hook
 export const useGlobalError = () => {
-    const context = useContext(ErrorContext);
+    const context = useContext(DialogContext);
     if (!context) throw new Error('useGlobalError must be used within GlobalErrorProvider');
     return context;
 };

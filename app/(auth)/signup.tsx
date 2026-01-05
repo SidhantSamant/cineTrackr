@@ -28,8 +28,8 @@ export default function SignupScreen() {
     const { showError } = useGlobalError();
 
     const handleSignup = async () => {
-        if (!email || !password) return Alert.alert('Error', 'Fields cannot be empty');
-        if (password !== confirmPassword) return Alert.alert('Error', 'Passwords do not match');
+        if (!email || !password) return showError('Fields cannot be empty');
+        if (password !== confirmPassword) return showError('Passwords do not match');
 
         setLoading(true);
         const {
@@ -46,7 +46,7 @@ export default function SignupScreen() {
             setLoading(false);
         } else {
             if (!session) {
-                Alert.alert('Success', 'Check your email for a verification link!');
+                // Alert.alert('Success', 'Check your email for a verification link!');
                 router.replace('/(auth)/login');
             } else {
                 router.replace('/(tabs)/profile');
@@ -127,7 +127,7 @@ export default function SignupScreen() {
                     <Pressable
                         onPress={handleSignup}
                         disabled={loading}
-                        className={`bg-primary shadow-primary/20 mt-4 items-center rounded-full py-4 shadow-lg active:opacity-90`}>
+                        className={`mt-4 items-center rounded-full bg-primary py-4 shadow-lg shadow-primary/20 active:opacity-90`}>
                         {loading ? (
                             <ActivityIndicator color="black" />
                         ) : (

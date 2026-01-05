@@ -1,4 +1,5 @@
 import { Colors } from '@/constants/Colors';
+import { useGlobalError } from '@/context/GlobalErrorContext';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/store/useAuthStore';
 import { Ionicons } from '@expo/vector-icons';
@@ -10,18 +11,19 @@ const ProfileScreen = () => {
     const user = useAuthStore((state) => state.user);
     const signOutStore = useAuthStore((state) => state.signOut);
 
+    const { showWarning } = useGlobalError();
+
     const handleSignOut = async () => {
-        Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
-            { text: 'Cancel', style: 'cancel' },
-            {
-                text: 'Sign Out',
-                style: 'destructive',
-                onPress: async () => {
-                    await supabase.auth.signOut();
-                    signOutStore();
-                },
+        showWarning({
+            title: 'Sign Out',
+            message: 'Are you sure you want to sign out?',
+            leftButtonText: 'Cancel',
+            rightButtonText: 'Sign Out',
+            onRightButtonPress: async () => {
+                await supabase.auth.signOut();
+                signOutStore();
             },
-        ]);
+        });
     };
 
     const MenuItem = ({ icon, label, isDestructive = false, hasArrow = true, onPress }: any) => (

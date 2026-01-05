@@ -16,13 +16,13 @@ type Params = {
 export const useMediaActions = ({ libraryItem, data, type }: Params) => {
     const user = useAuthStore((state) => state.user);
 
-    const { showError } = useGlobalError();
+    const { showWarning, showError } = useGlobalError();
     const router = useRouter();
     const { addToLibrary, removeFromLibrary, updateStatus, toggleFavorite } = useLibraryMutations();
 
     const requireAuth = (actionName: string) => {
         if (!user) {
-            showError({
+            showWarning({
                 message: `Sign in to ${actionName}`,
                 rightButtonText: 'Sign In',
                 onRightButtonPress: () => router.navigate('/(auth)/login'),
@@ -103,7 +103,7 @@ export const useMediaActions = ({ libraryItem, data, type }: Params) => {
 
             await Linking.openURL(url);
         } catch (err) {
-            Alert.alert('Error', 'Could not open video link');
+            showError('Could not open video link');
         }
     };
 

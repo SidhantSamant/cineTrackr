@@ -15,7 +15,7 @@ export default function LoginScreen() {
     const router = useRouter();
 
     const handleLogin = async () => {
-        if (!email || !password) return Alert.alert('Error', 'Please fill in all fields');
+        if (!email || !password) return showError('Please fill all fields.');
         setLoading(true);
 
         const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -53,7 +53,7 @@ export default function LoginScreen() {
                         <TextInput
                             placeholder="email@example.com"
                             placeholderTextColor={Colors.placeholderText}
-                            className="focus:border-primary rounded-2xl border border-neutral-800 bg-neutral-900 px-4 py-4 text-white"
+                            className="rounded-2xl border border-neutral-800 bg-neutral-900 px-4 py-4 text-white focus:border-primary"
                             onChangeText={setEmail}
                             autoCapitalize="none"
                             keyboardType="email-address"
@@ -68,7 +68,7 @@ export default function LoginScreen() {
                             placeholder="••••••••"
                             placeholderTextColor={Colors.placeholderText}
                             secureTextEntry
-                            className="focus:border-primary rounded-2xl border border-neutral-800 bg-neutral-900 px-4 py-4 text-white"
+                            className="rounded-2xl border border-neutral-800 bg-neutral-900 px-4 py-4 text-white focus:border-primary"
                             onChangeText={setPassword}
                             autoCapitalize="none"
                         />
