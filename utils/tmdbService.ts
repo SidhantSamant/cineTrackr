@@ -1,48 +1,18 @@
-import { MovieResponse, MovieVM, TmdbCollectionDetailVM } from '@/models/MovieVM';
-import { MediaType, TVSeriesResponse, TVShowVM } from '@/models/TVShowVM';
-import tmdbClient from './tmdbClient';
-import { TrendingResponseVM } from '@/models/TrendingItemVM';
+import { MovieResponse, TmdbCollectionDetailVM } from '@/models/MovieVM';
 import { SeasonVM } from '@/models/SeasonVM';
+import { TrendingResponseVM } from '@/models/TrendingItemVM';
+import { MediaType, TVSeriesResponse } from '@/models/TVShowVM';
+import tmdbClient from './tmdbClient';
 
 export const getDetails = async (type: MediaType, id: number) => {
     try {
         return await tmdbClient.get<any>(
-            // `${type}/${id}?append_to_response=videos,similar,credits&language=en-US`,
             `${type}/${id}?append_to_response=videos,recommendations,credits,watch/providers&language=en-US`,
         );
     } catch (error) {
         console.log(error);
     }
 };
-// export const fetchListData = async ({
-//     pageParam,
-//     type,
-//     slug,
-// }: {
-//     pageParam: number;
-//     type: MediaType;
-//     slug: string;
-// }) => {
-//     try {
-//         let endpoint = `${type}/${slug}`;
-//         let params = `language=en-US&page=${pageParam}`;
-
-//         if (slug === 'trending_anime') {
-//             endpoint = `discover/tv`;
-//             params += `&with_genres=16&with_original_language=ja&sort_by=popularity.desc&include_adult=false`;
-//         } else if (slug === 'top_rated_anime') {
-//             endpoint = `discover/tv`;
-//             params += `&with_genres=16&with_original_language=ja&sort_by=vote_average.desc&vote_count.gte=250&include_adult=false`;
-//         }
-
-//         const data = await tmdbClient.get<MovieResponse | TVSeriesResponse>(
-//             `${endpoint}?${params}`,
-//         );
-//         return data?.results;
-//     } catch (error) {
-//         console.log(error);
-//     }
-// };
 
 export const fetchListData = async ({
     pageParam,
@@ -72,15 +42,6 @@ export const fetchListData = async ({
                 params.append('with_genres', '16'); // Animation genre
                 params.append('with_original_language', 'ja'); // Japanese
             }
-
-            // if (isHiddenGem) {
-            //     params.append('vote_count.gte', '150');
-            //     params.append('vote_count.lte', type === 'movie' ? '2000' : '1000');
-            //     params.append('vote_average.gte', type === 'movie' ? '7.2' : '8.0');
-            //     params.append('popularity.lte', type === 'movie' ? '70' : '40');
-            //     params.append('without_genres', '99,10763');
-            //     params.set('sort_by', 'vote_average.desc');
-            // }
 
             if (isHiddenGem) {
                 params.append('vote_count.gte', '150');

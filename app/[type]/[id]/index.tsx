@@ -1,7 +1,7 @@
 import CastItem from '@/components/CastItem';
 import HomeHorizontalList from '@/components/HorizontalMediaList';
 import ActionButton from '@/components/UI/ActionButton';
-import { HorizontalListSkeleton } from '@/components/UI/Skeletons';
+import { DetailScreenSkeleton, HorizontalListSkeleton } from '@/components/UI/Skeletons';
 import WatchProviders from '@/components/WatchProviders.tsx';
 import { Colors } from '@/constants/Colors';
 import { useGlobalError } from '@/context/GlobalErrorContext';
@@ -102,12 +102,7 @@ const MediaDetailScreen = () => {
     });
 
     if (isLoading || isLibraryItemLoading) {
-        return (
-            // <DetailScreenSkeleton />
-            <View className="flex-1 items-center justify-center bg-[#121212]">
-                <ActivityIndicator size="large" color={Colors.primary} />
-            </View>
-        );
+        return <DetailScreenSkeleton />;
     }
 
     if (error || (!data && !isLoading)) {
