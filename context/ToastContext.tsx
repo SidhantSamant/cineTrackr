@@ -1,6 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
-import React, { createContext, useCallback, useContext, useMemo, useRef, useState } from 'react';
-import { Text, View, Pressable } from 'react-native';
+import React, {
+    createContext,
+    useCallback,
+    useContext,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from 'react';
+import { Text, View, Pressable, Keyboard, Platform, LayoutAnimation } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type ToastType = 'success' | 'error' | 'warning';
@@ -22,9 +30,32 @@ export const ToastProvider = ({ children }: { children: React.ReactNode }) => {
     const [visible, setVisible] = useState(false);
     const [message, setMessage] = useState('');
     const [type, setType] = useState<ToastType>('success');
+    const [keyboardHeight, setKeyboardHeight] = useState(0);
 
     const insets = useSafeAreaInsets();
     const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+    useEffect(() => {
+        const showSub = Keyboard.addListener(
+            Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
+            (e) => {
+                LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+                setKeyboardHeight(e.endCoordinates.height);
+            },
+        );
+        const hideSub = Keyboard.addListener(
+            Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
+            () => {
+                LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+                setKeyboardHeight(0);
+            },
+        );
+
+        return () => {
+            showSub.remove();
+            hideSub.remove();
+        };
+    }, []);
 
     const hide = useCallback(() => {
         setVisible(false);
@@ -33,18 +64,16 @@ export const ToastProvider = ({ children }: { children: React.ReactNode }) => {
 
     const show = useCallback((msg: string, toastType: ToastType, duration = 3000) => {
         if (timerRef.current) clearTimeout(timerRef.current);
-
         setMessage(msg);
         setType(toastType);
         setVisible(true);
-
-        timerRef.current = setTimeout(() => {
-            setVisible(false);
-        }, duration);
+        timerRef.current = setTimeout(() => setVisible(false), duration);
     }, []);
 
     const value = useMemo(() => ({ show, hide }), [show, hide]);
     const variant = VARIANTS[type];
+
+    const bottomOffset = 20 + (insets.bottom || 10) + keyboardHeight;
 
     return (
         <ToastContext.Provider value={value}>
@@ -54,15 +83,13 @@ export const ToastProvider = ({ children }: { children: React.ReactNode }) => {
                 {visible && (
                     <View
                         className="absolute left-5 right-5 z-[9999] items-center"
-                        // style={{ top: (insets.top || 40) + 60 }}
-                        style={{ bottom: (insets.bottom || 40) + 40 }}
+                        style={{ bottom: bottomOffset }}
                         pointerEvents="box-none">
                         <Pressable
                             onPress={hide}
                             className="w-full flex-row items-center rounded-2xl border border-l-4 border-[#333] bg-[#1A1A1A] p-3 shadow-lg shadow-black/30 active:opacity-90"
                             style={{ borderLeftColor: variant.color }}
-                            accessibilityRole="alert"
-                            accessibilityLiveRegion="polite">
+                            accessibilityRole="alert">
                             <View
                                 className="mr-3 h-10 w-10 items-center justify-center rounded-full"
                                 style={{ backgroundColor: variant.bg }}>
@@ -84,27 +111,20 @@ export const ToastProvider = ({ children }: { children: React.ReactNode }) => {
 
 export const useToast = () => {
     const context = useContext(ToastContext);
-
-    if (!context) {
-        throw new Error('useToast must be used within a ToastProvider');
-    }
-
-    const showSuccessToast = useCallback(
-        (msg: string, duration?: number) => context.show(msg, 'success', duration),
-        [context],
-    );
-    const showErrorToast = useCallback(
-        (msg: string, duration?: number) => context.show(msg, 'error', duration),
-        [context],
-    );
-    const showWarningToast = useCallback(
-        (msg: string, duration?: number) => context.show(msg, 'warning', duration),
-        [context],
-    );
+    if (!context) throw new Error('useToast must be used within a ToastProvider');
 
     return {
-        showSuccessToast,
-        showErrorToast,
-        showWarningToast,
+        showSuccessToast: useCallback(
+            (msg: string, t?: number) => context.show(msg, 'success', t),
+            [context],
+        ),
+        showErrorToast: useCallback(
+            (msg: string, t?: number) => context.show(msg, 'error', t),
+            [context],
+        ),
+        showWarningToast: useCallback(
+            (msg: string, t?: number) => context.show(msg, 'warning', t),
+            [context],
+        ),
     };
 };
