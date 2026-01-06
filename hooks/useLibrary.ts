@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '../store/useAuthStore';
 import UserLibraryVM, { MediaStatus, MediaType } from '@/models/UserLibraryVM';
-import { LibraryService } from '@/utils/libraryService';
+import { libraryService } from '@/utils/libraryService';
 
 // Query Keys for Caching
 export const QUERY_KEYS = {
@@ -14,7 +14,7 @@ export const useLibrary = (status?: MediaStatus, isAnime?: boolean) => {
 
     return useQuery({
         queryKey: [QUERY_KEYS.library, status, isAnime],
-        queryFn: () => LibraryService.getLibrary(status, isAnime),
+        queryFn: () => libraryService.getLibrary(status, isAnime),
         enabled: !!user,
     });
 };
@@ -24,7 +24,7 @@ export const useItemStatus = (tmdbId: number, mediaType: MediaType) => {
 
     return useQuery({
         queryKey: [QUERY_KEYS.itemStatus, tmdbId, mediaType],
-        queryFn: () => LibraryService.getItemStatus(tmdbId, mediaType),
+        queryFn: () => libraryService.getItemStatus(tmdbId, mediaType),
         enabled: !!user && !!tmdbId,
     });
 };
@@ -33,7 +33,7 @@ export const useLibraryMutations = () => {
     const queryClient = useQueryClient();
 
     const addToLibrary = useMutation({
-        mutationFn: LibraryService.upsertItem,
+        mutationFn: libraryService.upsertItem,
 
         onMutate: async (vars) => {
             await queryClient.cancelQueries({
@@ -76,7 +76,7 @@ export const useLibraryMutations = () => {
 
     const removeFromLibrary = useMutation({
         mutationFn: ({ tmdbId, mediaType }: { tmdbId: number; mediaType: MediaType }) =>
-            LibraryService.removeItem(tmdbId, mediaType),
+            libraryService.removeItem(tmdbId, mediaType),
         onMutate: async (vars) => {
             const queryKey = [QUERY_KEYS.itemStatus, vars.tmdbId, vars.mediaType];
             await queryClient.cancelQueries({ queryKey });
@@ -107,7 +107,7 @@ export const useLibraryMutations = () => {
             isFavorite: boolean;
             tmdbId: number;
             mediaType: MediaType;
-        }) => LibraryService.updateFavorite(vars.id, vars.isFavorite),
+        }) => libraryService.updateFavorite(vars.id, vars.isFavorite),
         onMutate: async (vars) => {
             const queryKey = [QUERY_KEYS.itemStatus, vars.tmdbId, vars.mediaType];
 
@@ -147,7 +147,7 @@ export const useLibraryMutations = () => {
             status: MediaStatus;
             tmdbId: number;
             mediaType: MediaType;
-        }) => LibraryService.updateStatus(vars.id, vars.status),
+        }) => libraryService.updateStatus(vars.id, vars.status),
         onMutate: async (vars) => {
             const queryKey = [QUERY_KEYS.itemStatus, vars.tmdbId, vars.mediaType];
 

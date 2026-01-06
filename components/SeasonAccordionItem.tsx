@@ -1,9 +1,9 @@
 import { SeasonVM } from '@/models/SeasonVM';
 import { getBlurHash, getTMDBImageSource } from '@/utils/imgHelper';
-import { fetchSeasonDetails } from '@/utils/tmdbService';
+import { tmdbService } from '@/utils/tmdbService';
 import { getRatingColor } from '@/utils/uiHelper';
 import { Ionicons } from '@expo/vector-icons';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Image } from 'expo-image';
 import { useEffect, useState } from 'react';
 import { LayoutChangeEvent, Pressable, Text, View } from 'react-native';
@@ -40,9 +40,16 @@ const SeasonAccordionItem = ({ tvShowId, seasonSummary }: Props) => {
         refetch,
     } = useQuery({
         queryKey: ['season', tvShowId, seasonSummary.season_number],
-        queryFn: () => fetchSeasonDetails(tvShowId, seasonSummary.season_number),
+        queryFn: () => tmdbService.getSeasonDetails(tvShowId, seasonSummary.season_number),
         enabled: isExpanded,
     });
+
+    useEffect(() => {
+        queryClient.prefetchQuery({
+            queryKey: ['season', tvShowId, 1],
+            queryFn: () => tmdbService.getSeasonDetails(tvShowId, 1),
+        });
+    }, [tvShowId]);
 
     const episodes = season?.episodes;
 

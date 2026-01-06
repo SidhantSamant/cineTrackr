@@ -2,7 +2,7 @@ import MediaListItem from '@/components/MediaListItem';
 import { Colors } from '@/constants/Colors';
 import { useGlobalError } from '@/context/GlobalErrorContext';
 import { MediaType } from '@/models/TVShowVM';
-import { fetchListData } from '@/utils/tmdbService';
+import { tmdbService } from '@/utils/tmdbService';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { router, useLocalSearchParams, useNavigation } from 'expo-router';
 import { useEffect, useLayoutEffect } from 'react';
@@ -26,7 +26,7 @@ export default function MoviesScreen() {
         {
             queryKey: [type, slug],
             initialPageParam: 1,
-            queryFn: ({ pageParam }) => fetchListData({ pageParam, type, slug }),
+            queryFn: ({ pageParam }) => tmdbService.getListData({ pageParam, type, slug }),
             getNextPageParam: (lastPage, pages) => pages.length + 1,
             gcTime: 0,
         },

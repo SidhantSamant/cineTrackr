@@ -11,7 +11,7 @@ import { useParallaxScroll } from '@/hooks/useParallaxScroll';
 import { CastVM } from '@/models/BaseMediaVM';
 import { MediaType } from '@/models/TVShowVM';
 import { BLURHASH_TRANSITION, getBlurHash, getTMDBImageSource } from '@/utils/imgHelper';
-import { getDetails, getMovieCollection } from '@/utils/tmdbService';
+import { tmdbService } from '@/utils/tmdbService';
 import {
     formatMovieRuntime,
     formatTVSeasonsMeta,
@@ -40,7 +40,7 @@ const MediaDetailScreen = () => {
     // Queries
     const { data, isLoading, error, refetch } = useQuery({
         queryKey: [type, id],
-        queryFn: () => getDetails(type, +id),
+        queryFn: () => tmdbService.getDetails(type, +id),
     });
 
     const {
@@ -56,7 +56,7 @@ const MediaDetailScreen = () => {
         refetch: refetchCollections,
     } = useQuery({
         queryKey: [type, 'collections', id],
-        queryFn: () => getMovieCollection(data?.belongs_to_collection?.id),
+        queryFn: () => tmdbService.getMovieCollection(data?.belongs_to_collection?.id),
         enabled: !!data?.belongs_to_collection?.id,
     });
 

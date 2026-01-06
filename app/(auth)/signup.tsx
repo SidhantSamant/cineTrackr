@@ -73,7 +73,7 @@ export default function SignupScreen() {
             <KeyboardAwareScrollView>
                 <View className="mb-10">
                     <Text className="text-4xl font-bold tracking-tight text-white">
-                        Join the Cine trackr community
+                        Track Movies & Shows, Effortlessly
                     </Text>
                     <Text className="mt-2 text-base leading-6 text-neutral-400">
                         Create an account to sync your watchlist and movie history across devices.

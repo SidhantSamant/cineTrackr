@@ -4,7 +4,7 @@ import { Colors } from '@/constants/Colors';
 import { useGlobalError } from '@/context/GlobalErrorContext';
 import { useDebounce } from '@/hooks/useDebounce';
 import { SearchType } from '@/models/TVShowVM';
-import { fetchTrendingList, searchMedia } from '@/utils/tmdbService';
+import { tmdbService } from '@/utils/tmdbService';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
@@ -24,13 +24,13 @@ const SearchScreen = () => {
         refetch,
     } = useQuery({
         queryKey: ['search', debouncedSearchText, activeFilter],
-        queryFn: () => searchMedia(debouncedSearchText, activeFilter),
+        queryFn: () => tmdbService.searchMedia(debouncedSearchText, activeFilter),
         enabled: isSearching,
     });
 
     const { data: trendingData, isLoading: isTrendingLoading } = useQuery({
         queryKey: ['TrendingList'],
-        queryFn: fetchTrendingList,
+        queryFn: tmdbService.getTrendingList,
         enabled: !isSearching,
     });
 

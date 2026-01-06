@@ -2,14 +2,14 @@ import MediaListSection from '@/components/MediaListSection';
 import TrendingList from '@/components/TrendingList';
 import { TrendingSkeleton } from '@/components/UI/Skeletons';
 import { Colors } from '@/constants/Colors';
-import { fetchTrendingList } from '@/utils/tmdbService';
+import { tmdbService } from '@/utils/tmdbService';
 import { useQuery } from '@tanstack/react-query';
 import { ScrollView, View } from 'react-native';
 
 export default function HomeScreen() {
     const { data: trendingList, isLoading: isTrendingLoading } = useQuery({
         queryKey: ['TrendingList'],
-        queryFn: fetchTrendingList,
+        queryFn: tmdbService.getTrendingList,
     });
 
     // const sectionQueries = useQueries({

@@ -2,7 +2,7 @@ import { Colors } from '@/constants/Colors';
 import { MovieVM } from '@/models/MovieVM';
 import { TVShowVM } from '@/models/TVShowVM';
 import { getCategorySlug, SectionHeadings } from '@/utils/homeScreenHelper';
-import { fetchListData } from '@/utils/tmdbService';
+import { tmdbService } from '@/utils/tmdbService';
 import { Ionicons } from '@expo/vector-icons';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { router } from 'expo-router';
@@ -52,7 +52,7 @@ export default function MediaListSection({ listType }: MediaListSectionProps) {
     const { data, isLoading, isPlaceholderData } = useQuery({
         queryKey: ['media-list', listType, activeTab],
         queryFn: () =>
-            fetchListData({
+            tmdbService.getListData({
                 pageParam: 1,
                 type: mediaType,
                 slug: getCategorySlug(listHeading),

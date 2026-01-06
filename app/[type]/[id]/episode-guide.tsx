@@ -3,11 +3,11 @@ import { Colors } from '@/constants/Colors';
 import { useGlobalError } from '@/context/GlobalErrorContext';
 import { SeasonVM } from '@/models/SeasonVM';
 import { MediaType } from '@/models/TVShowVM';
-import { getDetails } from '@/utils/tmdbService';
+import { tmdbService } from '@/utils/tmdbService';
 import { useQuery } from '@tanstack/react-query';
 import { router, useLocalSearchParams, useNavigation } from 'expo-router';
 import { useCallback, useEffect, useLayoutEffect, useState } from 'react';
-import { ActivityIndicator, FlatList, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, FlatList, View } from 'react-native';
 
 export default function MoviesScreen() {
     const navigation = useNavigation();
@@ -28,7 +28,7 @@ export default function MoviesScreen() {
 
     const { data, isLoading, error } = useQuery({
         queryKey: [type, id],
-        queryFn: () => getDetails(type, +id),
+        queryFn: () => tmdbService.getDetails(type, +id),
     });
 
     const seasons = data?.seasons?.filter((s: { season_number: number }) => s.season_number > 0);

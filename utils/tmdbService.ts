@@ -4,28 +4,24 @@ import { TrendingResponseVM } from '@/models/TrendingItemVM';
 import { MediaType, TVSeriesResponse } from '@/models/TVShowVM';
 import tmdbClient from './tmdbClient';
 
-export const getDetails = async (type: MediaType, id: number) => {
-    try {
-        return await tmdbClient.get<any>(
-            `${type}/${id}?append_to_response=videos,recommendations,credits,watch/providers&language=en-US`,
-        );
-    } catch (error) {
-        console.log(error);
-    }
-};
-
-export const fetchListData = async ({
-    pageParam,
-    type,
-    slug,
-}: {
+interface FetchListParams {
     pageParam: number;
     type: MediaType;
     slug: string;
-}) => {
-    try {
+}
+
+class TmdbService {
+    public async getDetails(type: MediaType, id: number) {
+        const params = new URLSearchParams({
+            append_to_response: 'videos,recommendations,credits,watch/providers',
+            language: 'en-US',
+        });
+        return tmdbClient.get<any>(`${type}/${id}`, params);
+    }
+
+    public async getListData({ pageParam, type, slug }: FetchListParams) {
         let endpoint = `${type}/${slug}`;
-        let params = new URLSearchParams({
+        const params = new URLSearchParams({
             language: 'en-US',
             page: pageParam.toString(),
             include_adult: 'false',
@@ -39,19 +35,17 @@ export const fetchListData = async ({
             params.append('sort_by', 'popularity.desc');
 
             if (isAnime) {
-                params.append('with_genres', '16'); // Animation genre
-                params.append('with_original_language', 'ja'); // Japanese
+                params.append('with_genres', '16');
+                params.append('with_original_language', 'ja');
             }
 
             if (isHiddenGem) {
                 params.append('vote_count.gte', '150');
-
                 const dateLimit = new Date();
                 dateLimit.setMonth(dateLimit.getMonth() - 6);
-                const formattedDate = dateLimit.toISOString().split('T')[0];
                 params.append(
                     type === 'movie' ? 'release_date.lte' : 'first_air_date.lte',
-                    formattedDate,
+                    dateLimit.toISOString().split('T')[0],
                 );
 
                 if (isAnime) {
@@ -74,83 +68,70 @@ export const fetchListData = async ({
             }
         }
 
-        const data = await tmdbClient.get<MovieResponse | TVSeriesResponse>(
-            `${endpoint}?${params}`,
+        const data = await tmdbClient.get<MovieResponse | TVSeriesResponse>(endpoint, params);
+        return data?.results || [];
+    }
+
+    public async getMovieCollection(collectionId: number) {
+        return tmdbClient.get<TmdbCollectionDetailVM>(
+            `collection/${collectionId}`,
+            new URLSearchParams({ language: 'en-US' }),
+        );
+    }
+
+    public async getSeasonDetails(seriesId: number, seasonNumber: number) {
+        return tmdbClient.get<SeasonVM>(
+            `tv/${seriesId}/season/${seasonNumber}`,
+            new URLSearchParams({ language: 'en-US' }),
+        );
+    }
+
+    public async getTrendingList() {
+        const data = await tmdbClient.get<TrendingResponseVM>(
+            'trending/all/day',
+            new URLSearchParams({ language: 'en-US' }),
         );
         return data?.results || [];
-    } catch (error) {
-        console.log(error);
-        return [];
     }
-};
 
-export const getMovieCollection = async (collectionId: number) => {
-    try {
-        const data = await tmdbClient.get<TmdbCollectionDetailVM>(
-            `collection/${collectionId}?language=en-US`,
-        );
-        return data;
-    } catch (error) {
-        console.log(error);
+    public async getCast(type: MediaType, mediaId: number) {
+        const data = await tmdbClient.get<any>(`${type}/${mediaId}/credits`);
+        return data?.cast || [];
     }
-};
 
-export const fetchSeasonDetails = async (seriesId: number, seasonNumber: number) => {
-    try {
-        const data = await tmdbClient.get<SeasonVM>(
-            `tv/${seriesId}/season/${seasonNumber}?language=en-US`,
-        );
-        return data;
-    } catch (error) {
-        console.log(error);
-    }
-};
-
-export const fetchTrendingList = async () => {
-    try {
-        const data = await tmdbClient.get<TrendingResponseVM>(`trending/all/day?language=en-US`);
-        return data?.results;
-    } catch (error) {
-        console.log(error);
-    }
-};
-
-export const getCast = async (type: MediaType, movieId: number) => {
-    try {
-        const data = await tmdbClient.get<any>(`${type}/${movieId}/credits`);
-        return data?.cast;
-    } catch (error) {
-        console.log(error);
-    }
-};
-
-export const getAllEpisodes = async (tvId: number, seasonNumber: number) => {
-    try {
+    public async getAllEpisodes(tvId: number, seasonNumber: number) {
         const data = await tmdbClient.get<any>(`tv/${tvId}/season/${seasonNumber}/episodes`);
-        return data?.cast;
-    } catch (error) {
-        console.log(error);
+        return data?.cast || [];
     }
-};
 
-export const searchMedia = async (searchQuery: string, searchType: 'multi' | 'movie' | 'tv') => {
-    try {
+    public async getEpisodeDetail(tvId: number, seasonNum: number, episodeNum: number) {
+        const params = new URLSearchParams({
+            append_to_response: 'credits,images',
+            language: 'en-US',
+        });
+        return tmdbClient.get<any>(`tv/${tvId}/season/${seasonNum}/episode/${episodeNum}`, params);
+    }
+
+    public async searchMedia(query: string, searchType: 'multi' | 'movie' | 'tv') {
+        const params = new URLSearchParams({
+            query,
+            include_adult: 'false',
+            language: 'en-US',
+            page: '1',
+        });
+
         const data = await tmdbClient.get<MovieResponse | TVSeriesResponse>(
-            `search/${searchType}?query=${searchQuery}&include_adult=false&language=en-US&page=1`,
+            `search/${searchType}`,
+            params,
         );
-
         const results = data?.results || [];
 
-        if (searchType === 'movie') {
+        if (searchType === 'movie')
             return results.map((item) => ({ ...item, media_type: 'movie' }));
-        }
+        if (searchType === 'tv') return results.map((item) => ({ ...item, media_type: 'tv' }));
 
-        if (searchType === 'tv') {
-            return results.map((item) => ({ ...item, media_type: 'tv' }));
-        }
-
-        return results.filter((x) => x.media_type === 'movie' || x.media_type === 'tv');
-    } catch (error) {
-        console.log(error);
+        return results.filter((x: any) => x.media_type === 'movie' || x.media_type === 'tv');
     }
-};
+}
+
+export const tmdbService = new TmdbService();

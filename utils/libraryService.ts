@@ -1,28 +1,30 @@
 import { supabase } from '@/lib/supabase';
 import UserLibraryVM, { MediaStatus, MediaType } from '@/models/UserLibraryVM';
 
-export const LibraryService = {
+class LibraryService {
     /**
-     * Fetch all items
+     * Fetch all items, optionally filtered by status, anime, or media type.
      */
-    getLibrary: async (status?: MediaStatus, isAnime?: boolean) => {
+    public async getLibrary(status?: MediaStatus, isAnime?: boolean, mediaType?: MediaType) {
         let query = supabase
             .from('user_library')
             .select('*')
             .order('updated_at', { ascending: false });
 
         if (status) query = query.eq('status', status);
+        if (mediaType) query = query.eq('media_type', mediaType);
         if (isAnime !== undefined) query = query.eq('is_anime', isAnime);
 
         const { data, error } = await query;
         if (error) throw error;
-        return data as UserLibraryVM[];
-    },
+
+        return (data || []) as UserLibraryVM[];
+    }
 
     /**
      * Check if an item exists and return its status
      */
-    getItemStatus: async (tmdbId: number, mediaType: MediaType) => {
+    public async getItemStatus(tmdbId: number, mediaType: MediaType) {
         const { data, error } = await supabase
             .from('user_library')
             .select('id, status, is_favorite')
@@ -32,22 +34,22 @@ export const LibraryService = {
 
         if (error) throw error;
         return data;
-    },
+    }
 
     /**
      * Add or Update an item
      */
-    upsertItem: async (item: Partial<UserLibraryVM>) => {
+    public async upsertItem(item: Partial<UserLibraryVM>) {
         const { data, error } = await supabase.from('user_library').upsert(item).select().single();
 
         if (error) throw error;
-        return data;
-    },
+        return data as UserLibraryVM;
+    }
 
     /**
      * Remove from Library
      */
-    removeItem: async (tmdbId: number, mediaType: MediaType) => {
+    public async removeItem(tmdbId: number, mediaType: MediaType) {
         const { error } = await supabase
             .from('user_library')
             .delete()
@@ -56,12 +58,12 @@ export const LibraryService = {
 
         if (error) throw error;
         return true;
-    },
+    }
 
     /**
      * Updates the status
      */
-    updateStatus: async (id: string, status: MediaStatus) => {
+    public async updateStatus(id: string, status: MediaStatus) {
         const { data, error } = await supabase
             .from('user_library')
             .update({ status })
@@ -70,13 +72,13 @@ export const LibraryService = {
             .single();
 
         if (error) throw error;
-        return data;
-    },
+        return data as UserLibraryVM;
+    }
 
     /**
      * Update Favorite
      */
-    updateFavorite: async (id: string, isFavorite: boolean) => {
+    public async updateFavorite(id: string, isFavorite: boolean) {
         const { data, error } = await supabase
             .from('user_library')
             .update({ is_favorite: isFavorite })
@@ -85,6 +87,8 @@ export const LibraryService = {
             .single();
 
         if (error) throw error;
-        return data;
-    },
-};
+        return data as UserLibraryVM;
+    }
+}
+
+export const libraryService = new LibraryService();
