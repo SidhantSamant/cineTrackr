@@ -1,6 +1,7 @@
 import KeyboardAwareScrollView from '@/components/UI/KeyboardAwareScrollView';
 import { Colors } from '@/constants/Colors';
 import { useGlobalError } from '@/context/GlobalErrorContext';
+import { useToast } from '@/context/ToastContext';
 import { supabase } from '@/lib/supabase';
 import { validate } from '@/utils/validationHelper';
 import { Ionicons } from '@expo/vector-icons';
@@ -16,6 +17,7 @@ export default function SignupScreen() {
     const [focusedField, setFocusedField] = useState<string | null>(null);
     const router = useRouter();
     const { showError } = useGlobalError();
+    const { showErrorToast } = useToast();
 
     const signupMutation = useMutation({
         mutationFn: async (credentials: typeof inputs) => {
@@ -46,13 +48,14 @@ export default function SignupScreen() {
 
     const handleSignup = () => {
         const emailCheck = validate.email(email);
-        if (!emailCheck.isValid && emailCheck.error) return showError(emailCheck.error);
+        if (!emailCheck.isValid && emailCheck.error) return showErrorToast(emailCheck.error);
 
         const passwordCheck = validate.password(password);
-        if (!passwordCheck.isValid && passwordCheck.error) return showError(passwordCheck.error);
+        if (!passwordCheck.isValid && passwordCheck.error)
+            return showErrorToast(passwordCheck.error);
 
         const matchCheck = validate.match(password, confirmPassword);
-        if (!matchCheck.isValid && matchCheck.error) return showError(matchCheck.error);
+        if (!matchCheck.isValid && matchCheck.error) return showErrorToast(matchCheck.error);
 
         signupMutation.mutate(inputs);
     };

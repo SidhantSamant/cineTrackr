@@ -11,7 +11,7 @@ export default function DetailStackLayout() {
                 options={{
                     headerTitle: '',
                     headerBackVisible: false,
-                    // headerShown: false,
+                    headerShown: false,
                 }}
             />
 

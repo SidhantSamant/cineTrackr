@@ -198,7 +198,7 @@ export const DetailScreenSkeleton = () => {
     return (
         <View className="flex-1 bg-[#121212]">
             {/* Backdrop */}
-            <SkeletonBox shimmer={shimmer} className="h-[100px] w-full" />
+            <SkeletonBox shimmer={shimmer} className="h-[200px] w-full" />
             <View className="-mt-16 px-4">
                 <View className="flex-row items-end">
                     {/* Poster */}

@@ -1,19 +1,21 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, Pressable, Alert, ActivityIndicator } from 'react-native';
-import { supabase } from '@/lib/supabase';
-import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import KeyboardAwareScrollView from '@/components/UI/KeyboardAwareScrollView';
 import { Colors } from '@/constants/Colors';
 import { useGlobalError } from '@/context/GlobalErrorContext';
-import KeyboardAwareScrollView from '@/components/UI/KeyboardAwareScrollView';
+import { useToast } from '@/context/ToastContext';
+import { supabase } from '@/lib/supabase';
 import { validate } from '@/utils/validationHelper';
+import { Ionicons } from '@expo/vector-icons';
 import { useMutation } from '@tanstack/react-query';
+import { useRouter } from 'expo-router';
+import { useState } from 'react';
+import { ActivityIndicator, Pressable, Text, TextInput, View } from 'react-native';
 
 export default function LoginScreen() {
     const { showError } = useGlobalError();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const router = useRouter();
+    const { showErrorToast } = useToast();
 
     const loginMutation = useMutation({
         mutationFn: async (credentials: typeof inputs) => {
@@ -37,10 +39,11 @@ export default function LoginScreen() {
 
     const handleLogin = () => {
         const emailCheck = validate.email(inputs.email);
-        if (!emailCheck.isValid && emailCheck.error) return showError(emailCheck.error);
+        if (!emailCheck.isValid && emailCheck.error) return showErrorToast(emailCheck.error);
 
-        const passwordCheck = validate.password(inputs.password);
-        if (!passwordCheck.isValid && passwordCheck.error) return showError(passwordCheck.error);
+        if (!inputs.password) {
+            return showErrorToast('Please enter your password');
+        }
 
         loginMutation.mutate(inputs);
     };

@@ -26,15 +26,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useMemo } from 'react';
-import {
-    ActivityIndicator,
-    FlatList,
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    View,
-} from 'react-native';
+import { FlatList, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 
 // CONSTANTS
@@ -122,6 +114,7 @@ const MediaDetailScreen = () => {
 
             <Stack.Screen
                 options={{
+                    headerShown: true,
                     headerTitle: () => (
                         <Animated.Text
                             numberOfLines={1}
@@ -157,7 +150,7 @@ const MediaDetailScreen = () => {
                         <Animated.View style={[StyleSheet.absoluteFill, imageAnimatedStyle]}>
                             <Image
                                 source={getTMDBImageSource(data.backdrop_path, 'w780')}
-                                style={{ width: '100%', height: '100%' }}
+                                style={styles.backdropImage}
                                 contentFit="cover"
                                 transition={BLURHASH_TRANSITION}
                                 placeholder={getBlurHash(data.backdrop_path)}
@@ -385,10 +378,16 @@ const styles = StyleSheet.create({
         fontSize: 18,
         marginHorizontal: 16,
     },
+    backdropImage: {
+        width: '100%',
+        height: '100%',
+        backgroundColor: Colors.imgBackground,
+    },
     posterImage: {
         width: 100,
         height: 152,
         borderRadius: 10,
+        backgroundColor: Colors.imgBackground,
     },
 });
 

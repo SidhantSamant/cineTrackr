@@ -1,4 +1,5 @@
 import { useGlobalError } from '@/context/GlobalErrorContext';
+import { useToast } from '@/context/ToastContext';
 import { useLibraryMutations } from '@/hooks/useLibrary';
 import UserLibraryVM, { MediaStatus, MediaType } from '@/models/UserLibraryVM';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -15,8 +16,8 @@ type Params = {
 
 export const useMediaActions = ({ libraryItem, data, type }: Params) => {
     const user = useAuthStore((state) => state.user);
-
     const { showWarning, showError } = useGlobalError();
+    const { showErrorToast } = useToast();
     const router = useRouter();
     const { addToLibrary, removeFromLibrary, updateStatus, toggleFavorite } = useLibraryMutations();
 
@@ -103,7 +104,7 @@ export const useMediaActions = ({ libraryItem, data, type }: Params) => {
 
             await Linking.openURL(url);
         } catch (err) {
-            showError('Could not open video link');
+            showErrorToast('Could not open video link');
         }
     };
 

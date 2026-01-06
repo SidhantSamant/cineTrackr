@@ -13,6 +13,7 @@ import { GlobalErrorProvider } from '@/context/GlobalErrorContext';
 import '@/global.css';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/store/useAuthStore';
+import { ToastProvider } from '@/context/ToastContext';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -81,15 +82,20 @@ function RootLayoutNav() {
             <ThemeProvider value={MyDarkTheme}>
                 <StatusBar style="light" />
                 <GlobalErrorProvider>
-                    <Stack screenOptions={{ contentStyle: { backgroundColor: Colors.background } }}>
-                        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-                        <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
-                        <Stack.Screen
-                            name="[type]/[id]"
-                            options={{ title: '', headerShown: false }}
-                        />
-                    </Stack>
+                    <ToastProvider>
+                        <Stack
+                            screenOptions={{
+                                contentStyle: { backgroundColor: Colors.background },
+                            }}>
+                            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                            <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+                            <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+                            <Stack.Screen
+                                name="[type]/[id]"
+                                options={{ title: '', headerShown: false }}
+                            />
+                        </Stack>
+                    </ToastProvider>
                 </GlobalErrorProvider>
             </ThemeProvider>
         </QueryClientProvider>

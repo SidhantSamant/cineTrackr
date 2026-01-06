@@ -1,6 +1,5 @@
 module.exports = function (api) {
     api.cache(true);
-    const plugins = [];
 
     return {
         presets: [
@@ -8,11 +7,11 @@ module.exports = function (api) {
                 'babel-preset-expo',
                 {
                     jsxImportSource: 'nativewind',
-                    unstable_transformImportMeta: true, // fix for the Zustand import.meta error
+                    unstable_transformImportMeta: true,
                 },
             ],
             'nativewind/babel',
         ],
-        plugins,
+        plugins: ['react-native-reanimated/plugin'],
     };
 };
