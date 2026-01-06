@@ -6,30 +6,43 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/constants/Colors';
 import { useGlobalError } from '@/context/GlobalErrorContext';
 import KeyboardAwareScrollView from '@/components/UI/KeyboardAwareScrollView';
+import { validate } from '@/utils/validationHelper';
+import { useMutation } from '@tanstack/react-query';
 
 export default function LoginScreen() {
     const { showError } = useGlobalError();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [loading, setLoading] = useState(false);
     const router = useRouter();
 
-    const handleLogin = async () => {
-        if (!email || !password) return showError('Please fill all fields.');
-        setLoading(true);
-
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-
-        if (error) {
+    const loginMutation = useMutation({
+        mutationFn: async (credentials: typeof inputs) => {
+            const { data, error } = await supabase.auth.signInWithPassword(credentials);
+            if (error) throw error;
+            return data;
+        },
+        onSuccess: () => {
+            router.replace('/(tabs)/profile');
+        },
+        onError: (error: any) => {
             showError({
                 message: error.message,
                 rightButtonText: 'Retry',
                 onRightButtonPress: handleLogin,
             });
-            setLoading(false);
-        } else {
-            router.replace('/(tabs)/profile');
-        }
+        },
+    });
+
+    const inputs = { email: email.trim(), password };
+
+    const handleLogin = () => {
+        const emailCheck = validate.email(inputs.email);
+        if (!emailCheck.isValid && emailCheck.error) return showError(emailCheck.error);
+
+        const passwordCheck = validate.password(inputs.password);
+        if (!passwordCheck.isValid && passwordCheck.error) return showError(passwordCheck.error);
+
+        loginMutation.mutate(inputs);
     };
 
     return (
@@ -76,9 +89,9 @@ export default function LoginScreen() {
 
                     <Pressable
                         onPress={handleLogin}
-                        disabled={loading}
+                        disabled={loginMutation.isPending}
                         className="mt-6 items-center rounded-full bg-white py-4 active:bg-neutral-200">
-                        {loading ? (
+                        {loginMutation.isPending ? (
                             <ActivityIndicator color={Colors.primary} />
                         ) : (
                             <Text className="text-lg font-bold text-black">Sign In</Text>

@@ -2,59 +2,61 @@ import KeyboardAwareScrollView from '@/components/UI/KeyboardAwareScrollView';
 import { Colors } from '@/constants/Colors';
 import { useGlobalError } from '@/context/GlobalErrorContext';
 import { supabase } from '@/lib/supabase';
+import { validate } from '@/utils/validationHelper';
 import { Ionicons } from '@expo/vector-icons';
+import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import {
-    ActivityIndicator,
-    Alert,
-    KeyboardAvoidingView,
-    Platform,
-    Pressable,
-    ScrollView,
-    Text,
-    TextInput,
-    View,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { ActivityIndicator, Pressable, Text, TextInput, View } from 'react-native';
 
 export default function SignupScreen() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
-    const [loading, setLoading] = useState(false);
     const [focusedField, setFocusedField] = useState<string | null>(null);
     const router = useRouter();
     const { showError } = useGlobalError();
 
-    const handleSignup = async () => {
-        if (!email || !password) return showError('Fields cannot be empty');
-        if (password !== confirmPassword) return showError('Passwords do not match');
+    const signupMutation = useMutation({
+        mutationFn: async (credentials: typeof inputs) => {
+            const { data, error } = await supabase.auth.signUp(credentials);
+            if (error) throw error;
+            return data;
+        },
+        onSuccess: (data) => {
+            const { session } = data;
 
-        setLoading(true);
-        const {
-            data: { session },
-            error,
-        } = await supabase.auth.signUp({ email, password });
-
-        if (error) {
+            if (!session) {
+                router.replace('/(auth)/login');
+                // showWarning('Check your email for the confirmation link!');
+            } else {
+                router.replace('/(tabs)/profile');
+            }
+        },
+        onError: (error: any) => {
             showError({
                 message: error.message,
                 rightButtonText: 'Retry',
                 onRightButtonPress: handleSignup,
             });
-            setLoading(false);
-        } else {
-            if (!session) {
-                // Alert.alert('Success', 'Check your email for a verification link!');
-                router.replace('/(auth)/login');
-            } else {
-                router.replace('/(tabs)/profile');
-            }
-        }
+        },
+    });
+
+    const inputs = { email: email.trim(), password };
+
+    const handleSignup = () => {
+        const emailCheck = validate.email(email);
+        if (!emailCheck.isValid && emailCheck.error) return showError(emailCheck.error);
+
+        const passwordCheck = validate.password(password);
+        if (!passwordCheck.isValid && passwordCheck.error) return showError(passwordCheck.error);
+
+        const matchCheck = validate.match(password, confirmPassword);
+        if (!matchCheck.isValid && matchCheck.error) return showError(matchCheck.error);
+
+        signupMutation.mutate(inputs);
     };
 
-    // Helper for input styling based on focus
     const getInputStyle = (fieldName: string) => {
         return `rounded-2xl border ${focusedField === fieldName ? 'border-primary' : 'border-neutral-800'} bg-neutral-900/50 px-4 py-4 text-white text-base`;
     };
@@ -68,7 +70,7 @@ export default function SignupScreen() {
             <KeyboardAwareScrollView>
                 <View className="mb-10">
                     <Text className="text-4xl font-bold tracking-tight text-white">
-                        Join the track
+                        Join the Cine trackr community
                     </Text>
                     <Text className="mt-2 text-base leading-6 text-neutral-400">
                         Create an account to sync your watchlist and movie history across devices.
@@ -126,9 +128,9 @@ export default function SignupScreen() {
                     {/* Submit Button */}
                     <Pressable
                         onPress={handleSignup}
-                        disabled={loading}
+                        disabled={signupMutation.isPending}
                         className={`mt-4 items-center rounded-full bg-primary py-4 shadow-lg shadow-primary/20 active:opacity-90`}>
-                        {loading ? (
+                        {signupMutation.isPending ? (
                             <ActivityIndicator color="black" />
                         ) : (
                             <Text className="text-lg font-black text-black">CREATE ACCOUNT</Text>
