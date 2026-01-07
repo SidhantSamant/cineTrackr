@@ -51,7 +51,7 @@ const SkeletonBox = ({
                 colors={[
                     'transparent',
                     'rgba(255,255,255, 0.03)',
-                    'rgba(255,255,255, 0.12)',
+                    'rgba(255,255,255, 0.10)',
                     'rgba(255,255,255, 0.03)',
                     'transparent',
                 ]}

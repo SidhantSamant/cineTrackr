@@ -93,6 +93,14 @@ const MediaDetailScreen = () => {
         type,
     });
 
+    const isReleased = useMemo(() => {
+        if (!data) return false;
+
+        const releaseDate = type === 'movie' ? data.release_date : data.first_air_date;
+
+        return releaseDate ? new Date(releaseDate) <= new Date() : false;
+    }, [data, type]);
+
     if (isLoading || isLibraryItemLoading) {
         return <DetailScreenSkeleton />;
     }
@@ -233,16 +241,18 @@ const MediaDetailScreen = () => {
                                 label="Watchlist"
                                 onPress={() => handleStatusPress('watchlist')}
                             />
-                            <ActionButton
-                                // icon="checkmark"
-                                icon={
-                                    libraryItem?.status === 'completed'
-                                        ? 'checkmark-circle'
-                                        : 'checkmark-circle-outline'
-                                }
-                                label="Watched"
-                                onPress={() => handleStatusPress('completed')}
-                            />
+                            {isReleased && (
+                                <ActionButton
+                                    // icon="checkmark"
+                                    icon={
+                                        libraryItem?.status === 'completed'
+                                            ? 'checkmark-circle'
+                                            : 'checkmark-circle-outline'
+                                    }
+                                    label="Watched"
+                                    onPress={() => handleStatusPress('completed')}
+                                />
+                            )}
                         </View>
                     </View>
                 </View>

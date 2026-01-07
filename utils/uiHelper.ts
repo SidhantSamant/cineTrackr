@@ -50,7 +50,7 @@ export function formatMovieMeta(movie: { runtime?: number | null; release_date?:
     return year;
 }
 
-export function formatMovieRuntime(movie: { runtime?: number | null; release_date?: string }) {
+export function formatMovieRuntime(movie: { runtime?: number | null }) {
     if (!movie.runtime) return '';
 
     const h = Math.floor(movie.runtime / 60);
@@ -59,7 +59,7 @@ export function formatMovieRuntime(movie: { runtime?: number | null; release_dat
     return h ? `${h}h ${m}m` : `${m}m`;
 }
 
-export function getMovieYear(movie: { runtime?: number | null; release_date?: string }) {
+export function getMovieYear(movie: { release_date?: string }) {
     return movie?.release_date?.split('-')[0] ?? '';
 }
 

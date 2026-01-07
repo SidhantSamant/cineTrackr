@@ -6,7 +6,7 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { getYouTubeKey } from '@/utils/detailHelper';
 import { mapTmdbToLibraryItem } from '@/utils/mappers';
 import { useRouter } from 'expo-router';
-import { Alert, Linking } from 'react-native';
+import { Linking } from 'react-native';
 
 type Params = {
     libraryItem?: Partial<UserLibraryVM> | null;
@@ -16,7 +16,7 @@ type Params = {
 
 export const useMediaActions = ({ libraryItem, data, type }: Params) => {
     const user = useAuthStore((state) => state.user);
-    const { showWarning, showError } = useGlobalError();
+    const { showWarning } = useGlobalError();
     const { showErrorToast } = useToast();
     const router = useRouter();
     const { addToLibrary, removeFromLibrary, updateStatus, toggleFavorite } = useLibraryMutations();
