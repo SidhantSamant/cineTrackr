@@ -42,7 +42,7 @@ export default function EpisodeGuideScreen() {
         if (!lastSeason) return;
 
         const year = new Date(lastSeason.air_date || Date.now()).getFullYear();
-        const isRecent = year >= new Date().getFullYear() - 2;
+        const isRecent = year >= new Date().getFullYear() - 3;
 
         if (isRecent) {
             queryClient.prefetchQuery({

@@ -7,6 +7,7 @@ import { libraryService } from '@/utils/libraryService';
 export const QUERY_KEYS = {
     library: 'user-library',
     itemStatus: 'library-item-status',
+    episodes: (showId: number, seasonNum: number) => ['user-episodes', showId, seasonNum],
 };
 
 export const useLibrary = (status?: MediaStatus, isAnime?: boolean) => {
