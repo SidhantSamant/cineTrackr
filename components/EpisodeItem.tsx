@@ -1,21 +1,51 @@
 import { Colors } from '@/constants/Colors';
+import { useGlobalError } from '@/context/GlobalErrorContext';
+import { useEpisodeGuide } from '@/hooks/useEpisodeGuide'; // or '@/hooks/useEpisodeMutations'
 import { EpisodeVM } from '@/models/SeasonVM';
+import UserLibraryVM from '@/models/UserLibraryVM';
+import { useAuthStore } from '@/store/useAuthStore';
 import { BLURHASH_TRANSITION, getBlurHash, getTMDBImageSource } from '@/utils/imgHelper';
 import { getRatingColor } from '@/utils/uiHelper';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
-import React from 'react';
+import { router } from 'expo-router';
+import React, { useMemo } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
 interface Props {
+    seasonNumber: number;
     episode: EpisodeVM;
     isWatched: boolean;
-    onToggle: (id: number) => void;
+    showMetadata?: UserLibraryVM;
 }
 
-const EpisodeItem = ({ episode, isWatched, onToggle }: Props) => {
+const EpisodeItem = ({ seasonNumber, episode, isWatched, showMetadata }: Props) => {
+    const { toggleEpisode } = useEpisodeGuide();
+    const { showWarning } = useGlobalError();
+    const user = useAuthStore((state) => state.user);
+
+    const isReleased = useMemo(() => {
+        return episode.air_date ? new Date(episode.air_date) <= new Date() : false;
+    }, [episode.air_date]);
+
     const handleToggle = () => {
-        onToggle(episode.id);
+        if (!isReleased) return;
+
+        if (!user) {
+            showWarning({
+                message: `Sign in to mark this episode as watched`,
+                rightButtonText: 'Sign In',
+                onRightButtonPress: () => router.navigate('/(auth)/login'),
+            });
+            return;
+        }
+
+        toggleEpisode.mutate({
+            show: showMetadata,
+            season: seasonNumber,
+            episode: episode.episode_number,
+            isWatched: !isWatched,
+        });
     };
 
     const runtime = episode.runtime ? `${episode.runtime}m` : '';
@@ -62,6 +92,7 @@ const EpisodeItem = ({ episode, isWatched, onToggle }: Props) => {
 
                     <Pressable
                         onPress={handleToggle}
+                        disabled={toggleEpisode.isPending}
                         hitSlop={10}
                         className={`rounded-full p-1.5 active:scale-90 active:opacity-70 ${isWatched ? 'bg-green-500' : 'bg-neutral-300'}`}>
                         <Ionicons
@@ -72,6 +103,7 @@ const EpisodeItem = ({ episode, isWatched, onToggle }: Props) => {
                     </Pressable>
                 </View>
 
+                {/* Metadata Footer */}
                 <View className="flex-row flex-wrap items-center gap-y-1">
                     {formattedDate && (
                         <Text className="text-xs font-medium text-neutral-400">
@@ -103,6 +135,10 @@ const EpisodeItem = ({ episode, isWatched, onToggle }: Props) => {
     );
 };
 
-export default React.memo(EpisodeItem, (prevProps, nextProps) => {
-    return prevProps.isWatched === nextProps.isWatched;
+export default React.memo(EpisodeItem, (prev, next) => {
+    return (
+        prev.isWatched === next.isWatched &&
+        prev.episode.id === next.episode.id &&
+        prev.showMetadata === next.showMetadata
+    );
 });
