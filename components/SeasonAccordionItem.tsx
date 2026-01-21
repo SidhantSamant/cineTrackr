@@ -1,45 +1,60 @@
 import { Colors } from '@/constants/Colors';
 import { useGlobalError } from '@/context/GlobalErrorContext';
-import { QUERY_KEYS } from '@/hooks/useLibrary';
 import { useEpisodeGuide } from '@/hooks/useEpisodeGuide';
-import { SeasonVM } from '@/models/SeasonVM';
+import { QUERY_KEYS } from '@/hooks/useLibrary';
+import { EpisodeVM, SeasonVM } from '@/models/SeasonVM';
 import UserLibraryVM from '@/models/UserLibraryVM';
+import { useAuthStore } from '@/store/useAuthStore';
 import { episodeService } from '@/utils/episodeService';
 import { getBlurHash, getTMDBImageSource } from '@/utils/imgHelper';
 import { tmdbService } from '@/utils/tmdbService';
 import { getRatingColor } from '@/utils/uiHelper';
 import { Ionicons } from '@expo/vector-icons';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { Image } from 'expo-image';
-import { memo, useEffect, useMemo, useState } from 'react';
-import { LayoutChangeEvent, Pressable, Text, View } from 'react-native';
-import Animated, {
-    Extrapolation,
-    interpolate,
-    useAnimatedStyle,
-    useSharedValue,
-    withTiming,
-} from 'react-native-reanimated';
+import { router } from 'expo-router';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
+import {
+    ActivityIndicator,
+    LayoutAnimation,
+    Pressable,
+    StyleSheet,
+    Text,
+    View,
+} from 'react-native';
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import EpisodeItem from './EpisodeItem';
 import { EpisodeListSkeleton } from './UI/Skeletons';
-import { useAuthStore } from '@/store/useAuthStore';
-import { router } from 'expo-router';
 
 interface Props {
     tvShowId: number;
     seasonSummary: SeasonVM;
     showMetadata?: UserLibraryVM;
+    isExpanded: boolean;
+    onToggle: () => void;
 }
 
-const SeasonAccordionItem = ({ tvShowId, seasonSummary, showMetadata }: Props) => {
+const SeasonAccordionItem = ({
+    tvShowId,
+    seasonSummary,
+    showMetadata,
+    isExpanded,
+    onToggle,
+}: Props) => {
     const { showError, showWarning } = useGlobalError();
-    const { toggleSeason } = useEpisodeGuide();
-    const [isExpanded, setIsExpanded] = useState(false);
-    const animationController = useSharedValue(0);
-    const contentHeight = useSharedValue(0);
+    const { toggleSeason, toggleEpisode } = useEpisodeGuide();
     const user = useAuthStore((state) => state.user);
+    const [renderLimit, setRenderLimit] = useState(10);
+    const chevronRotation = useSharedValue(0);
 
-    // Season Details (TMDB)
+    useEffect(() => {
+        chevronRotation.value = withTiming(isExpanded ? 180 : 0, { duration: 300 });
+    }, [isExpanded]);
+
+    const chevronStyle = useAnimatedStyle(() => ({
+        transform: [{ rotate: `${chevronRotation.value}deg` }],
+    }));
+
     const {
         data: season,
         isLoading,
@@ -51,11 +66,9 @@ const SeasonAccordionItem = ({ tvShowId, seasonSummary, showMetadata }: Props) =
         enabled: isExpanded,
     });
 
-    // User Progress (Supabase)
     const {
         data: watchedEpisodes = [],
         error: watchedEpisodesError,
-        isLoading: isLoadingWatchedEpisodes,
         refetch: refetchWatchedEpisodes,
     } = useQuery({
         queryKey: QUERY_KEYS.episodes(tvShowId, seasonSummary.season_number),
@@ -71,84 +84,111 @@ const SeasonAccordionItem = ({ tvShowId, seasonSummary, showMetadata }: Props) =
         }
     }, [error, watchedEpisodesError]);
 
-    // Animations
+    // BATCHING LOGIC
     useEffect(() => {
-        animationController.value = withTiming(isExpanded ? 1 : 0, { duration: 300 });
-    }, [isExpanded]);
-
-    const chevronStyle = useAnimatedStyle(() => {
-        const rotate = interpolate(animationController.value, [0, 1], [0, 180]);
-        return { transform: [{ rotate: `${rotate}deg` }] };
-    });
-
-    const containerStyle = useAnimatedStyle(() => {
-        const height = interpolate(
-            animationController.value,
-            [0, 1],
-            [0, contentHeight.value],
-            Extrapolation.CLAMP,
-        );
-        return { height, opacity: animationController.value };
-    });
-
-    const onLayout = (event: LayoutChangeEvent) => {
-        const layoutHeight = event.nativeEvent.layout.height;
-        requestAnimationFrame(() => {
-            if (Math.round(contentHeight.value) !== Math.round(layoutHeight)) {
-                contentHeight.value = layoutHeight;
-            }
-        });
-    };
-
-    const handleToggleSeasonWatched = () => {
-        if (!user) {
-            showWarning({
-                message: `Sign in to mark this season as watched`,
-                rightButtonText: 'Sign In',
-                onRightButtonPress: () => router.navigate('/(auth)/login'),
-            });
-            return;
+        let timeoutId: NodeJS.Timeout;
+        if (isExpanded) {
+            timeoutId = setTimeout(() => {
+                if (!season?.episodes) return;
+                const total = season.episodes.length;
+                const loadNextBatch = () => {
+                    setRenderLimit((prev) => {
+                        const next = prev + 15;
+                        if (next < total) {
+                            timeoutId = setTimeout(loadNextBatch, 150);
+                            return next;
+                        }
+                        return total;
+                    });
+                };
+                loadNextBatch();
+            }, 350);
+        } else {
+            setRenderLimit(10);
         }
-        toggleSeason.mutate({
-            show: showMetadata,
-            seasonNum: seasonSummary.season_number,
-            // epCount: seasonSummary.episode_count,
-            epCount: releasedEpisodeCount,
-            isWatched: !isSeasonFullyWatched,
-        });
-    };
+        return () => clearTimeout(timeoutId);
+    }, [isExpanded, season?.episodes]);
 
-    const handleExpandToggle = () => setIsExpanded((prev) => !prev);
+    const handleEpisodeToggle = useCallback(
+        (episode: EpisodeVM) => {
+            const isReleased = episode.air_date
+                ? episode.air_date <= new Date().toISOString().split('T')[0]
+                : false;
+            if (!isReleased) return;
+            if (!user) {
+                showWarning({
+                    message: `Sign in required`,
+                    rightButtonText: 'Sign In',
+                    onRightButtonPress: () => router.navigate('/(auth)/login'),
+                });
+                return;
+            }
+            toggleEpisode.mutate({
+                show: showMetadata,
+                season: seasonSummary.season_number,
+                episode: episode.episode_number,
+            });
+        },
+        [user, showMetadata, seasonSummary.season_number, showWarning, toggleEpisode],
+    );
 
-    if (error) return null;
+    const handleExpandToggle = useCallback(() => {
+        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+        onToggle();
+    }, [onToggle]);
 
-    // Derived State
+    // Derived States
     const episodes = season?.episodes || [];
     const totalEpisodes = seasonSummary.episode_count;
     const watchedCount = watchedEpisodes.length;
-    const progressPercent = totalEpisodes > 0 ? (watchedCount / totalEpisodes) * 100 : 0;
-    const score = seasonSummary.vote_average > 0 ? seasonSummary.vote_average.toFixed(1) : null;
-    const ratingColor = getRatingColor(seasonSummary.vote_average);
-
-    const watchedEpisodeNumbers = useMemo(() => {
-        return new Set(watchedEpisodes.map((e) => e.episode_number));
-    }, [watchedEpisodes]);
 
     const releasedEpisodeCount = useMemo(() => {
         if (episodes.length > 0) {
-            const now = new Date();
-            return episodes.filter((e) => e.air_date && new Date(e.air_date) <= now).length;
+            const now = new Date().toISOString().split('T')[0];
+            return episodes.filter((e) => e.air_date && e.air_date <= now).length;
         }
         return totalEpisodes;
     }, [episodes, totalEpisodes]);
 
-    const isSeasonFullyWatched = useMemo(() => {
-        return releasedEpisodeCount > 0 && watchedCount >= releasedEpisodeCount;
-    }, [releasedEpisodeCount, watchedCount]);
+    const isSeasonFullyWatched = useMemo(
+        () => releasedEpisodeCount > 0 && watchedCount >= releasedEpisodeCount,
+        [releasedEpisodeCount, watchedCount],
+    );
 
-    // const isSeasonFullyWatched = useMemo(() => {
-    //     return totalEpisodes > 0 && watchedCount >= totalEpisodes;
-    // }, [totalEpisodes, watchedCount]);
+    const handleToggleSeasonWatched = useCallback(() => {
+        if (!user)
+            return showWarning({
+                message: 'Sign in',
+                rightButtonText: 'Sign In',
+                onRightButtonPress: () => router.navigate('/(auth)/login'),
+            });
+        if (isLoading) return;
+        toggleSeason.mutate({
+            show: showMetadata,
+            seasonNum: seasonSummary.season_number,
+            epCount: releasedEpisodeCount,
+            isWatched: !isSeasonFullyWatched,
+        });
+    }, [
+        user,
+        isLoading,
+        showMetadata,
+        seasonSummary.season_number,
+        releasedEpisodeCount,
+        isSeasonFullyWatched,
+        toggleSeason,
+        showWarning,
+    ]);
+
+    const watchedEpisodeNumbers = useMemo(
+        () => new Set(watchedEpisodes.map((e) => e.episode_number)),
+        [watchedEpisodes],
+    );
+    const progressPercent = totalEpisodes > 0 ? (watchedCount / totalEpisodes) * 100 : 0;
+    const score = seasonSummary.vote_average > 0 ? seasonSummary.vote_average.toFixed(1) : null;
+    const ratingColor = getRatingColor(seasonSummary.vote_average);
+
+    if (error) return null;
 
     return (
         <View className="mb-4 overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-900/50">
@@ -160,15 +200,9 @@ const SeasonAccordionItem = ({ tvShowId, seasonSummary, showMetadata }: Props) =
                         <Image
                             source={getTMDBImageSource(seasonSummary.poster_path, 'w185')}
                             placeholder={getBlurHash(seasonSummary.poster_path)}
-                            transition={300}
+                            transition={0}
                             contentFit="cover"
-                            style={{
-                                width: 64,
-                                aspectRatio: 3 / 4,
-                                borderRadius: 6,
-                                backgroundColor: Colors.imgBackground,
-                                opacity: isSeasonFullyWatched ? 0.5 : 1,
-                            }}
+                            style={[styles.image, { opacity: isSeasonFullyWatched ? 0.5 : 1 }]}
                         />
                         {isSeasonFullyWatched && (
                             <View className="absolute inset-0 items-center justify-center rounded-md bg-black/40">
@@ -176,12 +210,19 @@ const SeasonAccordionItem = ({ tvShowId, seasonSummary, showMetadata }: Props) =
                             </View>
                         )}
                     </View>
-
                     <View className="flex-1 justify-center">
-                        <Text className="text-lg font-bold tracking-tight text-white">
+                        <Text
+                            className="text-lg font-semibold tracking-tight text-white"
+                            numberOfLines={1}>
                             {seasonSummary.name}
                         </Text>
-
+                        {seasonSummary?.overview && (
+                            <Text
+                                className="text-sm italic leading-5 text-neutral-400"
+                                numberOfLines={2}>
+                                "{seasonSummary.overview}"
+                            </Text>
+                        )}
                         <View className="mt-1 flex-row flex-wrap items-center gap-2">
                             {score && (
                                 <View
@@ -218,13 +259,12 @@ const SeasonAccordionItem = ({ tvShowId, seasonSummary, showMetadata }: Props) =
                     </View>
                 </View>
 
-                {/* Action Buttons */}
                 <View className="flex-row items-center gap-3">
                     <Pressable
                         onPress={handleToggleSeasonWatched}
-                        // disabled={toggleSeason.isPending}
                         hitSlop={10}
-                        className={`mr-2 rounded-full p-1.5 active:scale-90 active:opacity-70 ${isSeasonFullyWatched ? 'bg-green-500' : 'bg-neutral-300'}`}>
+                        disabled={toggleSeason.isPending || isLoading || releasedEpisodeCount === 0}
+                        className={`mx-1.5 rounded-full p-2 active:scale-90 active:opacity-70 ${isSeasonFullyWatched ? 'bg-green-500' : 'bg-neutral-300'}`}>
                         <Ionicons
                             name={'checkmark-sharp'}
                             size={18}
@@ -232,13 +272,13 @@ const SeasonAccordionItem = ({ tvShowId, seasonSummary, showMetadata }: Props) =
                         />
                     </Pressable>
 
-                    <Animated.View style={chevronStyle}>
+                    <Animated.View style={chevronStyle} collapsable={false}>
                         <Ionicons name="chevron-down" size={20} color="#d4d4d4" />
                     </Animated.View>
+                    {/* <Ionicons name="chevron-down" size={20} color="#d4d4d4" /> */}
                 </View>
             </Pressable>
 
-            {/* Progress Bar */}
             <View className="h-1 w-full bg-neutral-800">
                 <View
                     className={`h-full ${isSeasonFullyWatched ? 'bg-green-500' : 'bg-yellow-500'}`}
@@ -246,25 +286,28 @@ const SeasonAccordionItem = ({ tvShowId, seasonSummary, showMetadata }: Props) =
                 />
             </View>
 
-            {/* Episodes List */}
-            <Animated.View style={[{ overflow: 'hidden' }, containerStyle]}>
-                <View onLayout={onLayout} className="absolute left-0 top-0 w-full bg-black/20">
-                    {isLoading || isLoadingWatchedEpisodes ? (
+            {isExpanded && (
+                <View className="w-full bg-black/20">
+                    {isLoading ? (
                         <EpisodeListSkeleton />
                     ) : episodes && episodes.length > 0 ? (
                         <>
-                            {episodes.map((episode) => (
+                            {episodes.slice(0, renderLimit).map((episode) => (
                                 <EpisodeItem
                                     key={episode.id}
-                                    seasonNumber={seasonSummary.season_number}
                                     episode={episode}
-                                    showMetadata={showMetadata}
                                     isWatched={
                                         isSeasonFullyWatched ||
                                         watchedEpisodeNumbers.has(episode.episode_number)
                                     }
+                                    onToggle={handleEpisodeToggle}
                                 />
                             ))}
+                            {episodes.length > renderLimit && (
+                                <View className="items-center py-4">
+                                    <ActivityIndicator size="small" color={Colors.primary} />
+                                </View>
+                            )}
                         </>
                     ) : (
                         <View className="items-center py-6">
@@ -274,13 +317,23 @@ const SeasonAccordionItem = ({ tvShowId, seasonSummary, showMetadata }: Props) =
                         </View>
                     )}
                 </View>
-            </Animated.View>
+            )}
         </View>
     );
 };
 
+const styles = StyleSheet.create({
+    image: {
+        width: 64,
+        aspectRatio: 3 / 4,
+        borderRadius: 6,
+        backgroundColor: Colors.imgBackground,
+    },
+});
+
 export default memo(SeasonAccordionItem, (prev, next) => {
     return (
+        prev.isExpanded === next.isExpanded &&
         prev.tvShowId === next.tvShowId &&
         prev.seasonSummary.id === next.seasonSummary.id &&
         prev.seasonSummary.episode_count === next.seasonSummary.episode_count &&

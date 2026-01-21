@@ -143,7 +143,8 @@ export const MediaListSkeleton = ({ hasTitle = true }: { hasTitle?: boolean }) =
 
 export const EpisodeItemSkeleton = ({ shimmer }: { shimmer: SharedValue<number> }) => {
     return (
-        <View className="flex-row items-center border-b border-neutral-800/50 p-4">
+        // <View className="h-28 flex-row items-center border-b border-neutral-800/50 p-3">
+        <View className="min-h-[112px] flex-row items-center border-b border-neutral-800/50 p-3">
             <SkeletonBox shimmer={shimmer} className="mr-4 h-[77px] w-[102px] rounded-lg" />
             <View className="flex-1 justify-center gap-3">
                 <SkeletonBox shimmer={shimmer} className="h-4 w-3/4 rounded-sm" />

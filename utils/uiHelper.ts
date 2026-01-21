@@ -110,3 +110,29 @@ export const getRatingColor = (voteAverage: number): string => {
     if (voteAverage >= 5) return '#eab308'; // Yellow-500
     return '#ef4444'; // Red-500
 };
+
+export const formatDateFast = (dateString?: string) => {
+    if (!dateString) return '';
+    // Input: "2024-05-20" -> Output: "May 20"
+    // Using simple mapping is faster than Intl.DateTimeFormat for lists
+    const months = [
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'May',
+        'Jun',
+        'Jul',
+        'Aug',
+        'Sep',
+        'Oct',
+        'Nov',
+        'Dec',
+    ];
+    const parts = dateString.split('-');
+    if (parts.length !== 3) return dateString;
+
+    const monthIndex = parseInt(parts[1], 10) - 1;
+    const day = parseInt(parts[2], 10);
+    return `${months[monthIndex]} ${day}`;
+};

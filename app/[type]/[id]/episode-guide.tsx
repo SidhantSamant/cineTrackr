@@ -21,21 +21,21 @@ export default function EpisodeGuideScreen() {
     const { showError } = useGlobalError();
     const queryClient = useQueryClient();
     const user = useAuthStore((state) => state.user);
-    // const [selectedSeason, setSelectedSeason] = useState(0);
 
     useLayoutEffect(() => {
         navigation.setOptions({
-            // headerTitle: title,
             headerTitle: 'Episode Guide',
         });
-    }, [navigation, title]);
+    }, [navigation]);
 
     const { data, isLoading, error } = useQuery({
         queryKey: [type, id],
         queryFn: () => tmdbService.getDetails(type, +id),
     });
 
-    const seasons = data?.seasons?.filter((s: { season_number: number }) => s.season_number > 0);
+    const seasons = useMemo(() => {
+        return data?.seasons?.filter((s: { season_number: number }) => s.season_number > 0) || [];
+    }, [data]);
 
     useEffect(() => {
         const lastSeason = seasons?.[seasons.length - 1];
@@ -67,6 +67,12 @@ export default function EpisodeGuideScreen() {
         }
     }, [error, data, isLoading]);
 
+    const [expandedSeasonId, setExpandedSeasonId] = useState<number>(0);
+
+    const handleToggle = useCallback((seasonNum: number) => {
+        setExpandedSeasonId((prev) => (prev === seasonNum ? 0 : seasonNum));
+    }, []);
+
     if (isLoading) {
         return (
             <View className="flex-1 items-center justify-center bg-[#121212]">
@@ -79,21 +85,17 @@ export default function EpisodeGuideScreen() {
         return <View className="flex-1 bg-[#121212]" />;
     }
 
-    // const handleToggle = (seasonNum: number) => {
-    //     setSelectedSeason((prev) => (prev === seasonNum ? 0 : seasonNum));
-    // };
-
     const renderItem = useCallback(
         ({ item }: { item: SeasonVM }) => (
             <SeasonAccordionItem
                 tvShowId={+id}
                 seasonSummary={item}
                 showMetadata={showMetadata}
-                // isExpanded={selectedSeason === item.season_number}
-                // onToggle={() => handleToggle(item.season_number)}
+                isExpanded={expandedSeasonId === item.season_number}
+                onToggle={() => handleToggle(item.season_number)}
             />
         ),
-        [id, showMetadata],
+        [id, showMetadata, expandedSeasonId, handleToggle],
     );
 
     return (
