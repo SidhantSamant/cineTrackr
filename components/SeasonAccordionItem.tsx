@@ -206,7 +206,7 @@ const SeasonAccordionItem = ({
             <Pressable
                 onPress={handleExpandToggle}
                 className={`flex-row items-center justify-between p-2.5 ${isExpanded ? 'bg-neutral-800/80' : 'bg-transparent'} active:bg-neutral-800`}>
-                <View className="flex-1 flex-row items-center gap-4">
+                <View className="flex-1 flex-row items-center gap-3">
                     <View className="shadow-sm shadow-black">
                         <Image
                             source={getTMDBImageSource(seasonSummary.poster_path, 'w185')}
@@ -228,13 +228,9 @@ const SeasonAccordionItem = ({
                             {seasonSummary.name}
                         </Text>
 
-                        {seasonSummary?.overview && (
-                            <Text
-                                className="text-sm italic leading-5 text-neutral-400"
-                                numberOfLines={2}>
-                                {seasonSummary.overview}
-                            </Text>
-                        )}
+                        <Text className="text-sm italic text-neutral-400" numberOfLines={2}>
+                            {seasonSummary.overview}
+                        </Text>
 
                         <View className="mt-1 flex-row flex-wrap items-center gap-2">
                             {score && (

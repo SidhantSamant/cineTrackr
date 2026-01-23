@@ -65,13 +65,9 @@ const EpisodeItem = ({ episode, isWatched, isNextUp, onToggle }: Props) => {
                     </Text>
                 </View>
 
-                {episode.overview && (
-                    <Text
-                        className="mt-0.5 text-xs italic leading-5 text-neutral-400"
-                        numberOfLines={2}>
-                        {episode.overview}
-                    </Text>
-                )}
+                <Text className="mt-0.5 text-sm italic text-neutral-400" numberOfLines={2}>
+                    {episode.overview}
+                </Text>
 
                 {/* Metadata Footer */}
                 <View className="flex-row flex-wrap items-center gap-y-1">
@@ -125,7 +121,7 @@ const EpisodeItem = ({ episode, isWatched, isNextUp, onToggle }: Props) => {
 
 const styles = StyleSheet.create({
     image: {
-        width: 102,
+        width: 112,
         height: 77,
         borderRadius: 8,
         // width: 96,
