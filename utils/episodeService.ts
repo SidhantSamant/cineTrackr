@@ -18,14 +18,14 @@ class EpisodeService {
         show: UserLibraryVM,
         season: number,
         episode: number,
-        isWatched: boolean,
+        markAsWatched: boolean,
     ) {
         const {
             data: { user },
         } = await supabase.auth.getUser();
         if (!user) throw new Error('User not logged in');
 
-        if (isWatched) {
+        if (markAsWatched) {
             const { error: libError } = await supabase.from('user_library').upsert(show, {
                 onConflict: 'user_id, tmdb_id, media_type',
                 ignoreDuplicates: true,

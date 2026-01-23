@@ -14,15 +14,16 @@ import { useQuery } from '@tanstack/react-query';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
-import {
-    ActivityIndicator,
-    LayoutAnimation,
-    Pressable,
-    StyleSheet,
-    Text,
-    View,
-} from 'react-native';
-import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import Animated, {
+    useAnimatedStyle,
+    useSharedValue,
+    withTiming,
+    FadeIn,
+    FadeOut,
+    LinearTransition,
+    Easing,
+} from 'react-native-reanimated';
 import EpisodeItem from './EpisodeItem';
 import { EpisodeListSkeleton } from './UI/Skeletons';
 
@@ -44,7 +45,7 @@ const SeasonAccordionItem = ({
     const { showError, showWarning } = useGlobalError();
     const { toggleSeason, toggleEpisode } = useEpisodeGuide();
     const user = useAuthStore((state) => state.user);
-    const [renderLimit, setRenderLimit] = useState(10);
+    const [renderLimit, setRenderLimit] = useState(20);
     const chevronRotation = useSharedValue(0);
 
     useEffect(() => {
@@ -68,6 +69,7 @@ const SeasonAccordionItem = ({
 
     const {
         data: watchedEpisodes = [],
+        isLoading: isLoadingWatchedEpisodes,
         error: watchedEpisodesError,
         refetch: refetchWatchedEpisodes,
     } = useQuery({
@@ -84,63 +86,28 @@ const SeasonAccordionItem = ({
         }
     }, [error, watchedEpisodesError]);
 
-    // BATCHING LOGIC
-    useEffect(() => {
-        let timeoutId: NodeJS.Timeout;
-        if (isExpanded) {
-            timeoutId = setTimeout(() => {
-                if (!season?.episodes) return;
-                const total = season.episodes.length;
-                const loadNextBatch = () => {
-                    setRenderLimit((prev) => {
-                        const next = prev + 15;
-                        if (next < total) {
-                            timeoutId = setTimeout(loadNextBatch, 150);
-                            return next;
-                        }
-                        return total;
-                    });
-                };
-                loadNextBatch();
-            }, 350);
-        } else {
-            setRenderLimit(10);
-        }
-        return () => clearTimeout(timeoutId);
-    }, [isExpanded, season?.episodes]);
-
-    const handleEpisodeToggle = useCallback(
-        (episode: EpisodeVM) => {
-            const isReleased = episode.air_date
-                ? episode.air_date <= new Date().toISOString().split('T')[0]
-                : false;
-            if (!isReleased) return;
-            if (!user) {
-                showWarning({
-                    message: `Sign in required`,
-                    rightButtonText: 'Sign In',
-                    onRightButtonPress: () => router.navigate('/(auth)/login'),
-                });
-                return;
-            }
-            toggleEpisode.mutate({
-                show: showMetadata,
-                season: seasonSummary.season_number,
-                episode: episode.episode_number,
-            });
-        },
-        [user, showMetadata, seasonSummary.season_number, showWarning, toggleEpisode],
-    );
-
-    const handleExpandToggle = useCallback(() => {
-        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-        onToggle();
-    }, [onToggle]);
-
     // Derived States
     const episodes = season?.episodes || [];
     const totalEpisodes = seasonSummary.episode_count;
     const watchedCount = watchedEpisodes.length;
+
+    const watchedEpisodeNumbers = useMemo(
+        () => new Set(watchedEpisodes.map((e) => e.episode_number)),
+        [watchedEpisodes],
+    );
+
+    const nextUpEpisodeId = useMemo(() => {
+        if (isLoadingWatchedEpisodes || !episodes?.length) return null;
+        if (watchedEpisodeNumbers.size === 0 && seasonSummary.season_number !== 1) return null;
+
+        const today = new Date().toISOString().split('T')[0];
+        const firstUnwatched = episodes.find((ep) => {
+            if (watchedEpisodeNumbers.has(ep.episode_number)) return false;
+            return ep.air_date && ep.air_date <= today;
+        });
+
+        return firstUnwatched ? firstUnwatched.id : null;
+    }, [episodes, watchedEpisodeNumbers, isLoadingWatchedEpisodes, seasonSummary.season_number]);
 
     const releasedEpisodeCount = useMemo(() => {
         if (episodes.length > 0) {
@@ -155,7 +122,21 @@ const SeasonAccordionItem = ({
         [releasedEpisodeCount, watchedCount],
     );
 
-    const handleToggleSeasonWatched = useCallback(() => {
+    // Batch Rendering Logic
+    useEffect(() => {
+        if (isExpanded && episodes.length > 20) {
+            const timeout = setTimeout(() => {
+                setRenderLimit(episodes.length);
+            }, 350);
+
+            return () => clearTimeout(timeout);
+        } else if (!isExpanded) {
+            setRenderLimit(20);
+        }
+    }, [isExpanded, season?.episodes]);
+
+    // Event Handlers
+    const handleToggleSeason = useCallback(() => {
         if (!user)
             return showWarning({
                 message: 'Sign in',
@@ -180,18 +161,48 @@ const SeasonAccordionItem = ({
         showWarning,
     ]);
 
-    const watchedEpisodeNumbers = useMemo(
-        () => new Set(watchedEpisodes.map((e) => e.episode_number)),
-        [watchedEpisodes],
+    const handleEpisodeToggle = useCallback(
+        (episode: EpisodeVM) => {
+            if (!user) {
+                return showWarning({
+                    message: `Sign in required`,
+                    rightButtonText: 'Sign In',
+                    onRightButtonPress: () => router.navigate('/(auth)/login'),
+                });
+            }
+
+            const isWatched = watchedEpisodeNumbers.has(episode.episode_number);
+            toggleEpisode.mutate({
+                show: showMetadata,
+                season: seasonSummary.season_number,
+                episode: episode.episode_number,
+                markAsWatched: !isWatched,
+            });
+        },
+        [
+            user,
+            showMetadata,
+            seasonSummary.season_number,
+            showWarning,
+            toggleEpisode,
+            watchedEpisodeNumbers,
+        ],
     );
+
+    const handleExpandToggle = useCallback(() => {
+        onToggle();
+    }, [onToggle]);
+
+    if (error) return null;
+
     const progressPercent = totalEpisodes > 0 ? (watchedCount / totalEpisodes) * 100 : 0;
     const score = seasonSummary.vote_average > 0 ? seasonSummary.vote_average.toFixed(1) : null;
     const ratingColor = getRatingColor(seasonSummary.vote_average);
 
-    if (error) return null;
-
     return (
-        <View className="mb-4 overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-900/50">
+        <Animated.View
+            layout={LinearTransition.duration(350).easing(Easing.inOut(Easing.quad))}
+            className="mb-4 overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-900/50">
             <Pressable
                 onPress={handleExpandToggle}
                 className={`flex-row items-center justify-between p-2.5 ${isExpanded ? 'bg-neutral-800/80' : 'bg-transparent'} active:bg-neutral-800`}>
@@ -216,13 +227,15 @@ const SeasonAccordionItem = ({
                             numberOfLines={1}>
                             {seasonSummary.name}
                         </Text>
+
                         {seasonSummary?.overview && (
                             <Text
                                 className="text-sm italic leading-5 text-neutral-400"
                                 numberOfLines={2}>
-                                "{seasonSummary.overview}"
+                                {seasonSummary.overview}
                             </Text>
                         )}
+
                         <View className="mt-1 flex-row flex-wrap items-center gap-2">
                             {score && (
                                 <View
@@ -237,15 +250,12 @@ const SeasonAccordionItem = ({
                                 </View>
                             )}
 
-                            {watchedCount > 0 ? (
-                                <Text className="text-xs font-bold text-green-500">
-                                    {watchedCount}/{totalEpisodes} Watched
-                                </Text>
-                            ) : (
-                                <Text className="text-xs font-medium text-neutral-400">
-                                    {seasonSummary.episode_count} Eps
-                                </Text>
-                            )}
+                            <Text
+                                className={`text-xs font-bold ${watchedCount > 0 ? 'text-green-500' : 'text-neutral-400'}`}>
+                                {watchedCount > 0
+                                    ? `${watchedCount}/${totalEpisodes} Watched`
+                                    : `${seasonSummary.episode_count} Eps`}
+                            </Text>
 
                             {seasonSummary.air_date && (
                                 <>
@@ -261,21 +271,19 @@ const SeasonAccordionItem = ({
 
                 <View className="flex-row items-center gap-3">
                     <Pressable
-                        onPress={handleToggleSeasonWatched}
+                        onPress={handleToggleSeason}
                         hitSlop={10}
                         disabled={toggleSeason.isPending || isLoading || releasedEpisodeCount === 0}
                         className={`mx-1.5 rounded-full p-2 active:scale-90 active:opacity-70 ${isSeasonFullyWatched ? 'bg-green-500' : 'bg-neutral-300'}`}>
                         <Ionicons
                             name={'checkmark-sharp'}
-                            size={18}
+                            size={16}
                             color={isSeasonFullyWatched ? 'white' : '#333333'}
                         />
                     </Pressable>
-
                     <Animated.View style={chevronStyle} collapsable={false}>
                         <Ionicons name="chevron-down" size={20} color="#d4d4d4" />
                     </Animated.View>
-                    {/* <Ionicons name="chevron-down" size={20} color="#d4d4d4" /> */}
                 </View>
             </Pressable>
 
@@ -287,7 +295,10 @@ const SeasonAccordionItem = ({
             </View>
 
             {isExpanded && (
-                <View className="w-full bg-black/20">
+                <Animated.View
+                    entering={FadeIn.duration(300).delay(50).easing(Easing.out(Easing.quad))}
+                    exiting={FadeOut.duration(200)}
+                    className="w-full bg-black/20">
                     {isLoading ? (
                         <EpisodeListSkeleton />
                     ) : episodes && episodes.length > 0 ? (
@@ -300,6 +311,7 @@ const SeasonAccordionItem = ({
                                         isSeasonFullyWatched ||
                                         watchedEpisodeNumbers.has(episode.episode_number)
                                     }
+                                    isNextUp={episode.id === nextUpEpisodeId}
                                     onToggle={handleEpisodeToggle}
                                 />
                             ))}
@@ -316,9 +328,9 @@ const SeasonAccordionItem = ({
                             </Text>
                         </View>
                     )}
-                </View>
+                </Animated.View>
             )}
-        </View>
+        </Animated.View>
     );
 };
 

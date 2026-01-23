@@ -8,10 +8,10 @@ export const useEpisodeGuide = () => {
 
     // 1. Toggle Single Episode
     const toggleEpisode = useMutation({
-        mutationFn: async ({ show, season, episode, isWatched }: any) => {
-            return episodeService.toggleEpisode(show, season, episode, isWatched);
+        mutationFn: async ({ show, season, episode, markAsWatched }: any) => {
+            return episodeService.toggleEpisode(show, season, episode, markAsWatched);
         },
-        onMutate: async ({ show, season, episode, isWatched }) => {
+        onMutate: async ({ show, season, episode, markAsWatched }) => {
             const queryKey = QUERY_KEYS.episodes(show.tmdb_id, season);
 
             await queryClient.cancelQueries({ queryKey });
@@ -19,7 +19,7 @@ export const useEpisodeGuide = () => {
             const previousEpisodes = queryClient.getQueryData<UserEpisodeVM[]>(queryKey) || [];
 
             queryClient.setQueryData(queryKey, (old: UserEpisodeVM[] = []) => {
-                if (isWatched) {
+                if (markAsWatched) {
                     if (old.some((e) => e.episode_number === episode)) return old;
 
                     return [
