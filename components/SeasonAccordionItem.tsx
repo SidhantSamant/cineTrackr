@@ -144,8 +144,9 @@ const SeasonAccordionItem = ({
                 onRightButtonPress: () => router.navigate('/(auth)/login'),
             });
         if (isLoading) return;
+
         toggleSeason.mutate({
-            show: showMetadata,
+            show: showMetadata!,
             seasonNum: seasonSummary.season_number,
             epCount: releasedEpisodeCount,
             isWatched: !isSeasonFullyWatched,
@@ -173,7 +174,7 @@ const SeasonAccordionItem = ({
 
             const isWatched = watchedEpisodeNumbers.has(episode.episode_number);
             toggleEpisode.mutate({
-                show: showMetadata,
+                show: showMetadata!,
                 season: seasonSummary.season_number,
                 episode: episode.episode_number,
                 markAsWatched: !isWatched,
