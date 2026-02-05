@@ -2,7 +2,7 @@ import CastItem from '@/components/CastItem';
 import HomeHorizontalList from '@/components/HorizontalMediaList';
 import ActionButton from '@/components/UI/ActionButton';
 import { DetailScreenSkeleton, HorizontalListSkeleton } from '@/components/UI/Skeletons';
-import WatchProviders from '@/components/WatchProviders.tsx';
+import WatchProviders from '@/components/WatchProviders';
 import { Colors } from '@/constants/Colors';
 import { useGlobalError } from '@/context/GlobalErrorContext';
 import { useItemStatus } from '@/hooks/useLibrary';
@@ -29,7 +29,6 @@ import { useEffect, useMemo } from 'react';
 import { FlatList, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 
-// CONSTANTS
 const IMG_HEIGHT = 200;
 const HEADER_HEIGHT = 100;
 
@@ -37,7 +36,6 @@ const MediaDetailScreen = () => {
     const { id, type } = useLocalSearchParams<{ id: string; type: MediaType }>();
     const { showError } = useGlobalError();
 
-    // Queries
     const { data, isLoading, error, refetch } = useQuery({
         queryKey: [type, id],
         queryFn: () => tmdbService.getDetails(type, +id),
@@ -69,6 +67,12 @@ const MediaDetailScreen = () => {
         });
     }, [movieCollections]);
 
+    const isReleased = useMemo(() => {
+        if (!data) return false;
+        const releaseDate = type === 'movie' ? data.release_date : data.first_air_date;
+        return releaseDate ? new Date(releaseDate) <= new Date() : false;
+    }, [data, type]);
+
     useEffect(() => {
         if (error || libraryItemError || errorCollections || (!data && !isLoading)) {
             showError({
@@ -80,41 +84,22 @@ const MediaDetailScreen = () => {
         }
     }, [error, libraryItemError, errorCollections, data, isLoading]);
 
-    // Parallax Animations
     const { onScroll, imageAnimatedStyle, headerAnimatedStyle } = useParallaxScroll({
         imgHeight: IMG_HEIGHT,
         headerHeight: HEADER_HEIGHT,
     });
 
-    // Action Button Handlers
     const { handleWatchTrailer, handleStatusPress, handleFavoritePress } = useMediaActions({
         libraryItem,
         data,
         type,
     });
 
-    const isReleased = useMemo(() => {
-        if (!data) return false;
-
-        const releaseDate = type === 'movie' ? data.release_date : data.first_air_date;
-
-        return releaseDate ? new Date(releaseDate) <= new Date() : false;
-    }, [data, type]);
-
-    if (isLoading || isLibraryItemLoading) {
-        return <DetailScreenSkeleton />;
-    }
-
-    if (error || (!data && !isLoading)) {
-        return <View className="flex-1 bg-[#121212]" />;
-    }
-
-    // Formatting
+    const mediaTitle = data ? (type === 'movie' ? data.title : data.name) : '';
     const meta = type === 'movie' ? '•   ' + formatMovieRuntime(data) : formatTVSeasonsMeta(data);
     const formattedDate = type === 'movie' ? getMovieYear(data) : formatTVYear(data);
-    const title = type === 'movie' ? data.title : data.name;
     const providers = data?.['watch/providers']?.results;
-    const ratingColor = getRatingColor(data.vote_average);
+    const ratingColor = data ? getRatingColor(data.vote_average) : '#fff';
 
     return (
         <View className="flex-1 bg-[#121212]">
@@ -127,7 +112,7 @@ const MediaDetailScreen = () => {
                         <Animated.Text
                             numberOfLines={1}
                             style={[styles.headerTitle, headerAnimatedStyle]}>
-                            {title}
+                            {mediaTitle}
                         </Animated.Text>
                     ),
                     headerTitleAlign: 'center',
@@ -146,233 +131,241 @@ const MediaDetailScreen = () => {
                 }}
             />
 
-            <Animated.ScrollView
-                className="flex-1 bg-[#121212]"
-                onScroll={onScroll}
-                showsVerticalScrollIndicator={false}
-                scrollEventThrottle={16}
-                overScrollMode="never">
-                <View style={{ backgroundColor: Colors.background }}>
-                    {/* Animated Image Container */}
-                    <View style={{ height: IMG_HEIGHT, width: '100%', overflow: 'hidden' }}>
-                        <Animated.View style={[StyleSheet.absoluteFill, imageAnimatedStyle]}>
-                            <Image
-                                source={getTMDBImageSource(data.backdrop_path, 'w780')}
-                                style={styles.backdropImage}
-                                contentFit="cover"
-                                transition={BLURHASH_TRANSITION}
-                                placeholder={getBlurHash(data.backdrop_path)}
-                                priority="high"
-                            />
-                            <LinearGradient
-                                style={StyleSheet.absoluteFill}
-                                colors={[
-                                    'transparent',
-                                    'rgba(18,18,18,0.0)',
-                                    'rgba(18,18,18,0.4)',
-                                    Colors.background,
-                                ]}
-                                locations={[0, 0.4, 0.7, 1]}
-                            />
-                        </Animated.View>
-                    </View>
-
-                    <View className="px-4" style={{ marginTop: -64 }}>
-                        <View className="flex-row">
-                            {/* Poster */}
-                            <Image
-                                source={getTMDBImageSource(data.poster_path)}
-                                style={styles.posterImage}
-                                contentFit="cover"
-                                placeholder={getBlurHash(data.poster_path)}
-                                transition={BLURHASH_TRANSITION}
-                                cachePolicy="memory-disk"
-                            />
-
-                            {/* Title & Metadata */}
-                            <View className="flex-1 justify-end pb-1 pl-4 pt-[64px]">
-                                <Text className="text-2xl font-bold leading-tight text-white">
-                                    {title}
-                                </Text>
-
-                                <View className="mt-2 flex-row flex-wrap items-center gap-x-3">
-                                    <View
-                                        className="flex-row items-center rounded px-1.5 py-0.5"
-                                        style={{ backgroundColor: `${ratingColor}33` }}>
-                                        <Ionicons name="star" size={12} color={ratingColor} />
-                                        <Text
-                                            className="ml-1 text-base font-bold"
-                                            style={{ color: ratingColor }}>
-                                            {data.vote_average.toFixed(1)}
-                                        </Text>
-                                    </View>
-
-                                    <Text className="text-base font-medium text-neutral-300">
-                                        {formattedDate}
-                                    </Text>
-                                    {meta && (
-                                        <Text className="mt-1 text-base font-medium text-neutral-300">
-                                            {meta}
-                                        </Text>
-                                    )}
-                                </View>
-                            </View>
+            {isLoading || isLibraryItemLoading ? (
+                <DetailScreenSkeleton />
+            ) : error || (!data && !isLoading) ? (
+                <View className="flex-1" />
+            ) : (
+                <Animated.ScrollView
+                    className="flex-1 bg-[#121212]"
+                    onScroll={onScroll}
+                    showsVerticalScrollIndicator={false}
+                    scrollEventThrottle={16}
+                    overScrollMode="never">
+                    <View style={{ backgroundColor: Colors.background }}>
+                        {/* Parallax Backdrop */}
+                        <View style={{ height: IMG_HEIGHT, width: '100%', overflow: 'hidden' }}>
+                            <Animated.View style={[StyleSheet.absoluteFill, imageAnimatedStyle]}>
+                                <Image
+                                    source={getTMDBImageSource(data.backdrop_path, 'w780')}
+                                    style={styles.backdropImage}
+                                    contentFit="cover"
+                                    transition={BLURHASH_TRANSITION}
+                                    placeholder={getBlurHash(data.backdrop_path)}
+                                    priority="high"
+                                />
+                                <LinearGradient
+                                    style={StyleSheet.absoluteFill}
+                                    colors={[
+                                        'transparent',
+                                        'rgba(18,18,18,0.0)',
+                                        'rgba(18,18,18,0.4)',
+                                        Colors.background,
+                                    ]}
+                                    locations={[0, 0.4, 0.7, 1]}
+                                />
+                            </Animated.View>
                         </View>
 
-                        {/* Action Buttons Row */}
-                        <View className="mt-6 flex-row items-center justify-around rounded-xl border border-neutral-800 bg-neutral-900/80 py-3">
-                            {/* <View className="mt-6 flex-row items-center justify-around rounded-xl bg-neutral-900/80 py-3"> */}
-                            <ActionButton
-                                icon="play"
-                                label="Trailer"
-                                onPress={handleWatchTrailer}
-                            />
-                            <ActionButton
-                                icon={libraryItem?.is_favorite ? 'heart' : 'heart-outline'}
-                                label="Favorite"
-                                onPress={handleFavoritePress}
-                            />
-                            <ActionButton
-                                icon={
-                                    libraryItem?.status === 'watchlist'
-                                        ? 'bookmark'
-                                        : 'bookmark-outline'
-                                }
-                                label="Watchlist"
-                                onPress={() => handleStatusPress('watchlist')}
-                            />
-                            {isReleased && (
+                        <View style={{ marginTop: -64, paddingHorizontal: 16 }}>
+                            <View className="flex-row">
+                                <Image
+                                    source={getTMDBImageSource(data.poster_path)}
+                                    style={styles.posterImage}
+                                    contentFit="cover"
+                                    placeholder={getBlurHash(data.poster_path)}
+                                    transition={BLURHASH_TRANSITION}
+                                    cachePolicy="memory-disk"
+                                />
+
+                                {/* Title & Metadata */}
+                                <View className="flex-1 justify-end pb-1 pl-4 pt-[64px]">
+                                    <Text className="text-2xl font-bold leading-tight text-white">
+                                        {mediaTitle}
+                                    </Text>
+
+                                    <View className="mt-2 flex-row flex-wrap items-center gap-x-3">
+                                        <View
+                                            className="flex-row items-center rounded px-1.5 py-0.5"
+                                            style={{ backgroundColor: `${ratingColor}33` }}>
+                                            <Ionicons name="star" size={12} color={ratingColor} />
+                                            <Text
+                                                className="ml-1 text-base font-bold"
+                                                style={{ color: ratingColor }}>
+                                                {data.vote_average.toFixed(1)}
+                                            </Text>
+                                        </View>
+
+                                        <Text className="text-base font-medium text-neutral-300">
+                                            {formattedDate}
+                                        </Text>
+                                        {meta && (
+                                            <Text className="mt-1 text-base font-medium text-neutral-300">
+                                                {meta}
+                                            </Text>
+                                        )}
+                                    </View>
+                                </View>
+                            </View>
+
+                            {/* Action Buttons */}
+                            <View className="mt-6 flex-row items-center justify-around rounded-xl border border-neutral-800 bg-neutral-900/80 py-3">
                                 <ActionButton
-                                    // icon="checkmark"
+                                    icon="play"
+                                    label="Trailer"
+                                    onPress={handleWatchTrailer}
+                                />
+                                <ActionButton
+                                    icon={libraryItem?.is_favorite ? 'heart' : 'heart-outline'}
+                                    label="Favorite"
+                                    onPress={handleFavoritePress}
+                                />
+                                <ActionButton
                                     icon={
-                                        libraryItem?.status === 'completed'
-                                            ? 'checkmark-circle'
-                                            : 'checkmark-circle-outline'
+                                        libraryItem?.status === 'watchlist'
+                                            ? 'bookmark'
+                                            : 'bookmark-outline'
                                     }
-                                    label="Watched"
-                                    onPress={() => handleStatusPress('completed')}
+                                    label="Watchlist"
+                                    onPress={() => handleStatusPress('watchlist')}
+                                />
+                                {isReleased && (
+                                    <ActionButton
+                                        icon={
+                                            libraryItem?.status === 'completed'
+                                                ? 'checkmark-circle'
+                                                : 'checkmark-circle-outline'
+                                        }
+                                        label="Watched"
+                                        onPress={() => handleStatusPress('completed')}
+                                    />
+                                )}
+                            </View>
+                        </View>
+                    </View>
+
+                    <View className="bg-[#121212] px-4 pb-8 pt-4">
+                        {/* Episode Guide */}
+                        {type === 'tv' && (
+                            <Pressable
+                                className="mb-6 flex-row items-center justify-between border-b border-neutral-800 pb-4 active:opacity-60"
+                                onPress={() =>
+                                    router.navigate({
+                                        pathname: `/[type]/[id]/episode-guide`,
+                                        params: { type, id, title: data.name },
+                                    })
+                                }>
+                                <Text className="text-lg font-semibold text-white">
+                                    Episode Guide
+                                </Text>
+                                <Ionicons name="chevron-forward" size={20} color="gray" />
+                            </Pressable>
+                        )}
+
+                        {/* Overview */}
+                        <View className="mb-6">
+                            <Text className="mb-2 text-lg font-semibold text-white">Overview</Text>
+                            <Text className="mt-2 text-base leading-6 text-neutral-300">
+                                {data.overview || 'No overview available.'}
+                            </Text>
+                        </View>
+
+                        {/* Genres */}
+                        <ScrollView
+                            className="mb-6 flex-row flex-wrap"
+                            horizontal
+                            showsHorizontalScrollIndicator={false}>
+                            {data.genres.map((genre: { id: number; name: string }) => (
+                                <View
+                                    key={genre.id}
+                                    className="mr-2 rounded-full border border-neutral-700 bg-neutral-800 px-4 py-2">
+                                    <Text className="text-sm text-white">{genre.name}</Text>
+                                </View>
+                            ))}
+                        </ScrollView>
+
+                        {/* Production Info */}
+                        {data.production_companies?.length > 0 && (
+                            <View className="mb-6">
+                                <Text className="mb-3 text-lg font-semibold text-white">
+                                    Production
+                                </Text>
+                                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                                    {data.production_companies.map(
+                                        (company: {
+                                            id: number;
+                                            logo_path: string | null;
+                                            name: string;
+                                        }) => (
+                                            <View
+                                                key={company.id}
+                                                className="mr-6 flex-row items-center opacity-80">
+                                                {company.logo_path ? (
+                                                    <Image
+                                                        source={getTMDBImageSource(
+                                                            company.logo_path,
+                                                        )}
+                                                        style={{ width: 24, height: 24 }}
+                                                        contentFit="contain"
+                                                        tintColor="white"
+                                                    />
+                                                ) : null}
+                                                <Text className="ml-2 text-xs font-medium text-neutral-400">
+                                                    {company.name}
+                                                </Text>
+                                            </View>
+                                        ),
+                                    )}
+                                </ScrollView>
+                            </View>
+                        )}
+
+                        {/* Top Cast */}
+                        {data.credits?.cast?.length > 0 && (
+                            <View>
+                                <Text className="mb-3 text-lg font-semibold text-white">
+                                    Top Cast
+                                </Text>
+                                <FlatList<CastVM>
+                                    data={data.credits.cast?.slice(0, 10)}
+                                    renderItem={({ item }) => <CastItem item={item} />}
+                                    keyExtractor={(item) => item.id.toString()}
+                                    horizontal
+                                    showsHorizontalScrollIndicator={false}
+                                />
+                            </View>
+                        )}
+
+                        {providers && <WatchProviders providers={providers} countryCode="IN" />}
+
+                        {/* Collections / Recommendations */}
+                        <View className="-mx-4 gap-2 pl-4">
+                            {isLoadingCollections ? (
+                                <HorizontalListSkeleton />
+                            ) : (
+                                movieCollectionSorted &&
+                                movieCollectionSorted.length > 0 && (
+                                    <HomeHorizontalList
+                                        ListHeading={`From ${movieCollections?.name}`}
+                                        listType={type}
+                                        listData={movieCollectionSorted}
+                                        showMore={false}
+                                    />
+                                )
+                            )}
+
+                            {data.recommendations?.results?.length > 0 && (
+                                <HomeHorizontalList
+                                    ListHeading="Recommendations"
+                                    listType={type}
+                                    listData={data.recommendations.results}
+                                    showMore={false}
                                 />
                             )}
                         </View>
                     </View>
-                </View>
-
-                <View className="bg-[#121212] px-4 pb-8 pt-4">
-                    {/* Episode Guide */}
-                    {type === 'tv' && (
-                        <Pressable
-                            className="mb-6 flex-row items-center justify-between border-b border-neutral-800 pb-4 active:opacity-60"
-                            onPress={() =>
-                                router.navigate({
-                                    pathname: `/[type]/[id]/episode-guide`,
-                                    params: { type, id, title: data.name },
-                                })
-                            }>
-                            <Text className="text-lg font-semibold text-white">Episode Guide</Text>
-                            <Ionicons name="chevron-forward" size={20} color="gray" />
-                        </Pressable>
-                    )}
-
-                    {/* Overview */}
-                    <View className="mb-6">
-                        <Text className="mb-2 text-lg font-semibold text-white">Overview</Text>
-                        <Text className="mt-2 text-base leading-6 text-neutral-300">
-                            {data.overview || 'No overview available.'}
-                        </Text>
-                    </View>
-
-                    {/* Genres */}
-                    <ScrollView
-                        className="mb-6 flex-row flex-wrap"
-                        horizontal
-                        showsHorizontalScrollIndicator={false}>
-                        {data.genres.map((genre: { id: number; name: string }) => (
-                            <View
-                                key={genre.id}
-                                // className="mr-2 rounded-full bg-neutral-800 px-4 py-2">
-                                className="mr-2 rounded-full border border-neutral-700 bg-neutral-800 px-4 py-2">
-                                <Text className="text-sm text-white">{genre.name}</Text>
-                            </View>
-                        ))}
-                    </ScrollView>
-
-                    {/* Production Info */}
-                    {data.production_companies?.length > 0 && (
-                        <View className="mb-6">
-                            <Text className="mb-3 text-lg font-semibold text-white">
-                                Production
-                            </Text>
-                            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                                {data.production_companies.map(
-                                    (company: {
-                                        id: number;
-                                        logo_path: string | null;
-                                        name: string;
-                                    }) => (
-                                        <View
-                                            key={company.id}
-                                            className="mr-6 flex-row items-center opacity-80">
-                                            {company.logo_path ? (
-                                                <Image
-                                                    source={getTMDBImageSource(company.logo_path)}
-                                                    style={{ width: 24, height: 24 }}
-                                                    contentFit="contain"
-                                                    tintColor="white"
-                                                />
-                                            ) : null}
-                                            <Text className="ml-2 text-xs font-medium text-neutral-400">
-                                                {company.name}
-                                            </Text>
-                                        </View>
-                                    ),
-                                )}
-                            </ScrollView>
-                        </View>
-                    )}
-
-                    {/* Cast List */}
-                    {data.credits?.cast?.length > 0 && (
-                        <View>
-                            <Text className="mb-3 text-lg font-semibold text-white">Top Cast</Text>
-                            <FlatList<CastVM>
-                                data={data.credits.cast?.slice(0, 10)}
-                                renderItem={({ item }) => <CastItem item={item} />}
-                                keyExtractor={(item) => item.id.toString()}
-                                horizontal
-                                showsHorizontalScrollIndicator={false}
-                            />
-                        </View>
-                    )}
-
-                    {providers && <WatchProviders providers={providers} countryCode="IN" />}
-
-                    {/* Collections / Horizontal Lists */}
-                    <View className="-mx-4 gap-2 pl-4">
-                        {isLoadingCollections ? (
-                            <HorizontalListSkeleton />
-                        ) : (
-                            movieCollectionSorted &&
-                            movieCollectionSorted.length > 0 && (
-                                <HomeHorizontalList
-                                    ListHeading={`From ${movieCollections?.name}`}
-                                    listType={type}
-                                    listData={movieCollectionSorted}
-                                    showMore={false}
-                                />
-                            )
-                        )}
-
-                        {data.recommendations?.results?.length > 0 && (
-                            <HomeHorizontalList
-                                ListHeading="Recommendations"
-                                listType={type}
-                                listData={data.recommendations.results}
-                                showMore={false}
-                            />
-                        )}
-                    </View>
-                </View>
-            </Animated.ScrollView>
+                </Animated.ScrollView>
+            )}
         </View>
     );
 };

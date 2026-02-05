@@ -1,4 +1,5 @@
 import { Colors } from '@/constants/Colors';
+import { useAuthStore } from '@/store/useAuthStore';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Tabs } from 'expo-router';
 import { Platform } from 'react-native';
@@ -6,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function TabLayout() {
     const insets = useSafeAreaInsets();
+    const user = useAuthStore((state) => state.user);
 
     return (
         <Tabs
@@ -81,12 +83,14 @@ export default function TabLayout() {
                 }}
             /> */}
             <Tabs.Screen
-                name="watchlist"
+                name="collection"
                 options={{
-                    title: 'Watchlist',
+                    href: user ? `/collection` : null,
+                    title: 'Collection',
+                    headerTitle: 'My Collection',
                     tabBarIcon: ({ color, size, focused }) => (
                         <Ionicons
-                            name={focused ? 'bookmark' : 'bookmark-outline'}
+                            name={focused ? 'albums' : 'albums-outline'}
                             size={size}
                             color={color}
                         />

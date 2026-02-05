@@ -3,13 +3,6 @@ import { Image } from 'expo-image';
 import React, { useMemo } from 'react';
 import { ScrollView, Text, View } from 'react-native';
 
-interface Provider {
-    provider_id: number;
-    provider_name: string;
-    logo_path: string;
-    type?: 'Stream' | 'Rent' | 'Buy';
-}
-
 interface WatchProvidersProps {
     providers: any;
     countryCode?: string;

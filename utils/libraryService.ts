@@ -1,19 +1,38 @@
 import { supabase } from '@/lib/supabase';
 import UserLibraryVM, { MediaStatus, MediaType } from '@/models/UserLibraryVM';
 
+export interface LibraryFilters {
+    status?: MediaStatus;
+    isAnime?: boolean;
+    mediaType?: MediaType;
+    isFavorite?: boolean;
+}
+
 class LibraryService {
     /**
      * Fetch all items, optionally filtered by status, anime, or media type.
      */
-    public async getLibrary(status?: MediaStatus, isAnime?: boolean, mediaType?: MediaType) {
+    public async getLibrary(filters: LibraryFilters = {}, limit?: number) {
         let query = supabase
             .from('user_library')
             .select('*')
             .order('updated_at', { ascending: false });
 
-        if (status) query = query.eq('status', status);
-        if (mediaType) query = query.eq('media_type', mediaType);
-        if (isAnime !== undefined) query = query.eq('is_anime', isAnime);
+        if (filters.status) {
+            query = query.eq('status', filters.status);
+        }
+        if (filters.mediaType) {
+            query = query.eq('media_type', filters.mediaType);
+        }
+        if (filters.isAnime !== undefined) {
+            query = query.eq('is_anime', filters.isAnime);
+        }
+        if (filters.isFavorite !== undefined) {
+            query = query.eq('is_favorite', filters.isFavorite);
+        }
+        if (limit) {
+            query = query.limit(limit);
+        }
 
         const { data, error } = await query;
         if (error) throw error;

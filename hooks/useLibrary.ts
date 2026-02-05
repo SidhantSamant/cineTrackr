@@ -10,15 +10,15 @@ export const QUERY_KEYS = {
     episodes: (showId: number, seasonNum: number) => ['user-episodes', showId, seasonNum],
 };
 
-export const useLibrary = (status?: MediaStatus, isAnime?: boolean) => {
-    const { user } = useAuthStore();
+// export const useLibrary = (status?: MediaStatus, isAnime?: boolean) => {
+//     const { user } = useAuthStore();
 
-    return useQuery({
-        queryKey: [QUERY_KEYS.library, status, isAnime],
-        queryFn: () => libraryService.getLibrary(status, isAnime),
-        enabled: !!user,
-    });
-};
+//     return useQuery({
+//         queryKey: [QUERY_KEYS.library, status, isAnime],
+//         queryFn: () => libraryService.getLibrary(status, isAnime),
+//         enabled: !!user,
+//     });
+// };
 
 export const useItemStatus = (tmdbId: number, mediaType: MediaType) => {
     const { user } = useAuthStore();

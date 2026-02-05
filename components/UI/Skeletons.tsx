@@ -265,3 +265,19 @@ export const DetailScreenSkeleton = () => {
         </View>
     );
 };
+
+export const GridListSkeleton = ({ count = 8 }: { count?: number }) => {
+    const shimmer = useShimmerAnimation();
+
+    return (
+        <View className="flex-row flex-wrap justify-start" style={{ gap: 8 }}>
+            {Array.from({ length: count }).map((_, i) => (
+                <SkeletonBox
+                    key={i}
+                    shimmer={shimmer}
+                    className="aspect-[3/5] w-[22.5%] rounded-2xl"
+                />
+            ))}
+        </View>
+    );
+};

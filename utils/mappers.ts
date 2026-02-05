@@ -1,3 +1,5 @@
+import { MovieVM } from '@/models/MovieVM';
+import { TVShowVM } from '@/models/TVShowVM';
 import UserLibraryVM, { MediaType } from '@/models/UserLibraryVM';
 
 type TmdbData = any;
@@ -30,5 +32,31 @@ export const mapTmdbToLibraryItem = (user_id: string, data: TmdbData, type: Medi
         total_episodes: totalEpisodes,
         episodes_watched: 0,
         current_season: 1,
+    } as UserLibraryVM;
+};
+
+export const mapLibraryToTmdb = (item: UserLibraryVM): TVShowVM | MovieVM => {
+    const common = {
+        id: item.tmdb_id,
+        media_type: item.media_type,
+        poster_path: item.poster_path,
+        backdrop_path: item.backdrop_path,
+        vote_average: item.score ?? 0,
     };
+
+    if (item.media_type === 'tv') {
+        return {
+            ...common,
+            name: item.title,
+            original_name: item.title,
+            first_air_date: item.release_date,
+        } as TVShowVM;
+    }
+
+    return {
+        ...common,
+        title: item.title,
+        original_title: item.title,
+        release_date: item.release_date,
+    } as MovieVM;
 };

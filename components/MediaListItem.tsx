@@ -10,13 +10,13 @@ type MediaListItemProps = {
     data?: MovieVM | TVShowVM;
     isGridView: boolean;
     type: MediaType;
+    isLibrary?: boolean;
 };
 
-const MediaListItem = ({ isGridView, data, type }: MediaListItemProps) => {
+const MediaListItem = ({ isGridView, isLibrary, data, type }: MediaListItemProps) => {
+    const width = isGridView ? (isLibrary ? '100%' : '32.6%') : 100;
     return (
-        <Pressable
-            style={{ width: isGridView ? '32.6%' : 100 }}
-            onPress={() => router.navigate(`/${type}/${data?.id}`)}>
+        <Pressable style={{ width: width }} onPress={() => router.navigate(`/${type}/${data?.id}`)}>
             <Image
                 source={getTMDBImageSource(data?.poster_path)}
                 style={{

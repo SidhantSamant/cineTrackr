@@ -1,4 +1,4 @@
-import MediaListSection from '@/components/MediaListSection';
+import HomeListSection from '@/components/HomeListSection';
 import TrendingList from '@/components/TrendingList';
 import { TrendingSkeleton } from '@/components/UI/Skeletons';
 import { Colors } from '@/constants/Colors';
@@ -33,9 +33,9 @@ export default function HomeScreen() {
                     <TrendingList listData={trendingList} />
                 )}
 
-                <MediaListSection listType="trending" />
-                <MediaListSection listType="hidden_gems" />
-                <MediaListSection listType="top_rated" />
+                <HomeListSection listType="trending" />
+                <HomeListSection listType="hidden_gems" />
+                <HomeListSection listType="top_rated" />
 
                 {/* {sectionQueries.map((query, index) => {
                     const section = HomeListSections[index];

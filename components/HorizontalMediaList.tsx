@@ -10,7 +10,7 @@ import { Colors } from '@/constants/Colors';
 type HorizontalMediaListProps = {
     ListHeading: string;
     listType: MediaType;
-    listData: (MovieVM | undefined)[] | (TVShowVM | undefined)[] | undefined;
+    listData: (MovieVM | TVShowVM | undefined)[] | undefined;
     showMore?: boolean;
 };
 
