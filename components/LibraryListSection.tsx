@@ -5,6 +5,7 @@ import SectionHeader, { ListMediaType } from './SectionHeader';
 import AnimatedHorizontalList from './UI/AnimatedHorizontalList';
 import { HorizontalListSkeleton } from './UI/Skeletons';
 import LibraryGridList from './LibraryGridList';
+import { router } from 'expo-router';
 
 interface LibraryListSectionProps {
     title: string;
@@ -48,9 +49,29 @@ export default function LibraryListSection({
 
     const { data, isLoading, isPlaceholderData } = useMappedLibrary(filters, isGridView ? 8 : 20);
 
-    const handleSeeAll = () => {
-        // ... navigation logic
-    };
+    const handleSeeAll = useCallback(() => {
+        let targetType = 'tv';
+        if (activeTab === 'movies') targetType = 'movie';
+        const params: any = {
+            title: title,
+        };
+
+        if (status) params.status = status;
+        if (isFavorite !== undefined) params.isFavorite = isFavorite.toString();
+
+        if (activeTab !== 'all') {
+            params.type = targetType;
+        }
+
+        if (activeTab === 'anime') {
+            params.isAnime = true;
+        }
+
+        router.push({
+            pathname: '/home/library-list',
+            params: params,
+        });
+    }, [title, status, isFavorite, activeTab]);
 
     // const handleSeeAll = useCallback(() => {
     //     router.push({

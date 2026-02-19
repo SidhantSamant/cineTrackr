@@ -12,7 +12,7 @@ class LibraryService {
     /**
      * Fetch all items, optionally filtered by status, anime, or media type.
      */
-    public async getLibrary(filters: LibraryFilters = {}, limit?: number) {
+    public async getLibrary(filters: LibraryFilters = {}, page: number = 1, limit: number = 20) {
         let query = supabase
             .from('user_library')
             .select('*')
@@ -30,9 +30,12 @@ class LibraryService {
         if (filters.isFavorite !== undefined) {
             query = query.eq('is_favorite', filters.isFavorite);
         }
-        if (limit) {
-            query = query.limit(limit);
-        }
+
+        // Calculate pagination range (0-indexed and inclusive)
+        const from = (page - 1) * limit;
+        const to = from + limit - 1;
+
+        query = query.range(from, to);
 
         const { data, error } = await query;
         if (error) throw error;

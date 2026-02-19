@@ -7,7 +7,7 @@ export const useMappedLibrary = (filters: LibraryFilters, limit?: number) => {
     return useQuery({
         queryKey: [QUERY_KEYS.library, filters],
         queryFn: async () => {
-            const data = await libraryService.getLibrary(filters, limit);
+            const data = await libraryService.getLibrary(filters, 1, limit);
             return data.map(mapLibraryToTmdb);
         },
         placeholderData: keepPreviousData,

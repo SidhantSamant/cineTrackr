@@ -70,7 +70,7 @@ export function formatTVYear(tv: {
     last_air_date?: string;
     status?: string;
 }) {
-    if (!tv.first_air_date) return '';
+    if (!tv || !tv.first_air_date) return '';
 
     const startYear = tv.first_air_date.split('-')[0];
 
@@ -92,6 +92,7 @@ export function formatTVSeasonsMeta(tv: {
     last_air_date?: string;
     status?: string;
 }) {
+    if (!tv) return '';
     const parts = [];
 
     if (tv.number_of_seasons) {

@@ -17,7 +17,7 @@ type Params = {
 export const useMediaActions = ({ libraryItem, data, type }: Params) => {
     const user = useAuthStore((state) => state.user);
     const { showWarning } = useGlobalError();
-    const { showErrorToast } = useToast();
+    const { showErrorToast, showSuccessToast } = useToast();
     const router = useRouter();
     const { addToLibrary, removeFromLibrary, updateStatus, toggleFavorite } = useLibraryMutations();
 
@@ -65,6 +65,8 @@ export const useMediaActions = ({ libraryItem, data, type }: Params) => {
             const payload = mapTmdbToLibraryItem(user!.id, data, type);
             addToLibrary.mutate({ ...payload, status: targetAction });
         }
+
+        showSuccessToast(`Watchlist updated`);
     };
 
     /**
@@ -88,6 +90,8 @@ export const useMediaActions = ({ libraryItem, data, type }: Params) => {
             const payload = mapTmdbToLibraryItem(user!.id, data, type);
             addToLibrary.mutate({ ...payload, is_favorite: true });
         }
+
+        showSuccessToast(`Favorites updated`);
     };
 
     /**
