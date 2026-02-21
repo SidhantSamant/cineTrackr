@@ -51,7 +51,7 @@ export function formatMovieMeta(movie: { runtime?: number | null; release_date?:
 }
 
 export function formatMovieRuntime(movie: { runtime?: number | null }) {
-    if (!movie.runtime) return '';
+    if (!movie?.runtime) return '';
 
     const h = Math.floor(movie.runtime / 60);
     const m = movie.runtime % 60;

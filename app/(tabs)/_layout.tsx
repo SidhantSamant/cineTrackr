@@ -87,6 +87,7 @@ export default function TabLayout() {
                 options={{
                     href: user ? `/collection` : null,
                     title: 'Collection',
+                    headerShown: false,
                     headerTitle: 'My Collection',
                     tabBarIcon: ({ color, size, focused }) => (
                         <Ionicons

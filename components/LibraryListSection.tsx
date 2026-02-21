@@ -3,7 +3,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import SectionHeader, { ListMediaType } from './SectionHeader';
 import AnimatedHorizontalList from './UI/AnimatedHorizontalList';
-import { HorizontalListSkeleton } from './UI/Skeletons';
+import { MediaListSkeleton } from './UI/Skeletons';
 import LibraryGridList from './LibraryGridList';
 import { router } from 'expo-router';
 
@@ -68,24 +68,17 @@ export default function LibraryListSection({
         }
 
         router.push({
-            pathname: '/home/library-list',
+            pathname: isGridView ? '/collection/library-list' : '/home/library-list',
             params: params,
         });
     }, [title, status, isFavorite, activeTab]);
 
-    // const handleSeeAll = useCallback(() => {
-    //     router.push({
-    //         pathname: '/home/type-list',
-    //         params: {
-    //             type: mediaType,
-    //             slug: getCategorySlug(listHeading),
-    //             title: listHeading,
-    //         },
-    //     });
-    // }, [mediaType, listHeading]);
+    if (!isGridView && isLoading) {
+        return <MediaListSkeleton hasTitle={true} />;
+    }
 
     return (
-        <View className="mx-3 mb-8">
+        <View>
             <SectionHeader
                 title={title}
                 activeTab={activeTab}
@@ -102,8 +95,6 @@ export default function LibraryListSection({
                     activeTab={activeTab}
                     emptyMessage={emptyMessage}
                 />
-            ) : isLoading ? (
-                <HorizontalListSkeleton hasTitle={false} />
             ) : (
                 data &&
                 data.length > 0 && (

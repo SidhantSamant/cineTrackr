@@ -21,7 +21,7 @@ export default function AnimatedHorizontalList({
             <MediaListItem
                 data={item}
                 isGridView={false}
-                type={(item.media_type ?? 'title' in item) ? 'movie' : 'tv'}
+                type={item.media_type ?? ('title' in item ? 'movie' : 'tv')}
             />
         ),
         [],

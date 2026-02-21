@@ -1,12 +1,16 @@
 import HomeListSection from '@/components/HomeListSection';
+import LibraryListSection from '@/components/LibraryListSection';
 import TrendingList from '@/components/TrendingList';
 import { TrendingSkeleton } from '@/components/UI/Skeletons';
 import { Colors } from '@/constants/Colors';
+import { useAuthStore } from '@/store/useAuthStore';
 import { tmdbService } from '@/utils/tmdbService';
 import { useQuery } from '@tanstack/react-query';
 import { ScrollView, View } from 'react-native';
 
 export default function HomeScreen() {
+    const user = useAuthStore((state) => state.user);
+
     const { data: trendingList, isLoading: isTrendingLoading } = useQuery({
         queryKey: ['TrendingList'],
         queryFn: tmdbService.getTrendingList,
@@ -33,26 +37,35 @@ export default function HomeScreen() {
                     <TrendingList listData={trendingList} />
                 )}
 
+                {user && (
+                    <>
+                        <LibraryListSection
+                            title="Continue Watching"
+                            status="watching"
+                            emptyMessage="Start watching something!"
+                            isGridView={false}
+                            showMovieTab={false}
+                        />
+
+                        <LibraryListSection
+                            title="Watchlist"
+                            status="watchlist"
+                            emptyMessage="No items in your watchlist"
+                            isGridView={false}
+                        />
+
+                        <LibraryListSection
+                            title="Favorites"
+                            isFavorite={true}
+                            emptyMessage="No favorites yet"
+                            isGridView={false}
+                        />
+                    </>
+                )}
+
                 <HomeListSection listType="trending" />
                 <HomeListSection listType="hidden_gems" />
                 <HomeListSection listType="top_rated" />
-
-                {/* {sectionQueries.map((query, index) => {
-                    const section = HomeListSections[index];
-
-                    if (query.isLoading || query.isError) {
-                        return <HorizontalListSkeleton key={index} />;
-                    }
-
-                    return (
-                        <HomeHorizontalList
-                            key={`${section.type}-${section.heading}`}
-                            ListHeading={section.heading}
-                            listType={section.type}
-                            listData={query.data}
-                        />
-                    );
-                })} */}
 
                 <View className="h-8" />
             </ScrollView>

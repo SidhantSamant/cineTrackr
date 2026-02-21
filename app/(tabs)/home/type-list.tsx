@@ -1,82 +1,40 @@
-import MediaListItem from '@/components/MediaListItem';
-import { Colors } from '@/constants/Colors';
-import { useGlobalError } from '@/context/GlobalErrorContext';
+import PaginatedMediaGrid from '@/components/UI/PaginatedMediaGrid';
 import { MediaType } from '@/models/TVShowVM';
 import { tmdbService } from '@/utils/tmdbService';
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { router, useLocalSearchParams, useNavigation } from 'expo-router';
-import { useEffect, useLayoutEffect } from 'react';
-import { ActivityIndicator, FlatList, View } from 'react-native';
+import { useLocalSearchParams, useNavigation } from 'expo-router';
+import { useLayoutEffect } from 'react';
 
-export default function MoviesScreen() {
+export default function TypeListScreen() {
     const navigation = useNavigation();
-    const { showError } = useGlobalError();
     const { type, slug, title } = useLocalSearchParams<{
         type: MediaType;
         slug: string;
         title: string;
     }>();
+
     useLayoutEffect(() => {
-        navigation.setOptions({
-            headerTitle: title,
-        });
+        navigation.setOptions({ headerTitle: title });
     }, [navigation, title]);
 
-    const { data, isLoading, isFetchingNextPage, error, fetchNextPage, refetch } = useInfiniteQuery(
-        {
+    const { data, isLoading, isFetchingNextPage, error, fetchNextPage, hasNextPage, refetch } =
+        useInfiniteQuery({
             queryKey: [type, slug],
             initialPageParam: 1,
             queryFn: ({ pageParam }) => tmdbService.getListData({ pageParam, type, slug }),
-            getNextPageParam: (lastPage, pages) => pages.length + 1,
-            gcTime: 0,
-        },
-    );
-
-    const listData = data?.pages.flat();
-
-    useEffect(() => {
-        if (error || (!listData && !isLoading)) {
-            showError({
-                leftButtonText: 'Go Back',
-                onLeftButtonPress: router.back,
-                rightButtonText: 'Retry',
-                onRightButtonPress: refetch,
-            });
-        }
-    }, [error, listData, isLoading]);
-
-    if (isLoading) {
-        return (
-            <View className="flex-1 items-center justify-center bg-[#121212]">
-                <ActivityIndicator size="large" color={Colors.primary} />
-            </View>
-        );
-    }
-
-    if (error || (!listData && !isLoading)) {
-        return <View className="flex-1 bg-[#121212]" />;
-    }
+            getNextPageParam: (lastPage, pages) =>
+                lastPage.length === 20 ? pages.length + 1 : undefined,
+        });
 
     return (
-        <View className="flex-1 pr-2" style={{ backgroundColor: Colors.background }}>
-            <FlatList
-                data={listData}
-                numColumns={3}
-                keyExtractor={(item, index) => index.toString()}
-                contentContainerStyle={{ gap: 8, padding: 8, flexGrow: 1 }}
-                columnWrapperStyle={{ gap: 8 }}
-                renderItem={({ item }) => (
-                    <MediaListItem data={item} type={type} isGridView={true} />
-                )}
-                onEndReached={() => {
-                    fetchNextPage();
-                }}
-                refreshing={isLoading && isFetchingNextPage}
-                onRefresh={refetch}
-                ListFooterComponent={() =>
-                    isFetchingNextPage && <ActivityIndicator size="large" color={Colors.primary} />
-                }
-            />
-        </View>
+        <PaginatedMediaGrid
+            listData={data?.pages.flat()}
+            isLoading={isLoading}
+            isFetchingNextPage={isFetchingNextPage}
+            error={error}
+            hasNextPage={!!hasNextPage}
+            fetchNextPage={fetchNextPage}
+            refetch={refetch}
+        />
     );
 }

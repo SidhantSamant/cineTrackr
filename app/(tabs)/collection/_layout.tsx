@@ -3,7 +3,7 @@ import { router, Stack } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Pressable } from 'react-native';
 
-export default function HomeStackLayout() {
+export default function CollectionStackLayout() {
     return (
         <Stack
             initialRouteName="index"
@@ -21,27 +21,10 @@ export default function HomeStackLayout() {
             <Stack.Screen
                 name="index"
                 options={{
-                    headerTitle: 'Cine Trackr',
-                    // headerRight: () => <HeaderRightProfileIcon addExtraMargin={false} />,
+                    headerTitle: 'My Collection',
                 }}
             />
 
-            <Stack.Screen
-                name="type-list"
-                options={{
-                    headerTitle: '',
-                    headerTitleStyle: {
-                        color: Colors.headingText,
-                        fontWeight: 'semibold',
-                        fontSize: 20,
-                    },
-                    headerLeft: () => (
-                        <Pressable onPress={router.back} hitSlop={8} className="pr-4">
-                            <Ionicons name="chevron-back" size={26} color="white" />
-                        </Pressable>
-                    ),
-                }}
-            />
             <Stack.Screen
                 name="library-list"
                 options={{

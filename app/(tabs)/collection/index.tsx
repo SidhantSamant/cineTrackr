@@ -1,9 +1,9 @@
 import LibraryListSection from '@/components/LibraryListSection';
 import { ScrollView } from 'react-native';
 
-export default function HomeScreen() {
+export default function CollectionScreen() {
     return (
-        <ScrollView>
+        <ScrollView className="gap-2 px-3">
             <LibraryListSection
                 title="Continue Watching"
                 status="watching"

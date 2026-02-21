@@ -270,7 +270,7 @@ export const GridListSkeleton = ({ count = 8 }: { count?: number }) => {
     const shimmer = useShimmerAnimation();
 
     return (
-        <View className="flex-row flex-wrap justify-start" style={{ gap: 8 }}>
+        <View className="flex-row flex-wrap justify-start gap-2">
             {Array.from({ length: count }).map((_, i) => (
                 <SkeletonBox
                     key={i}
