@@ -10,6 +10,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, useLocalSearchParams, useNavigation } from 'expo-router';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, FlatList, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function EpisodeGuideScreen() {
     const navigation = useNavigation();
@@ -18,6 +19,7 @@ export default function EpisodeGuideScreen() {
         title: string;
         type: MediaType;
     }>();
+    const insets = useSafeAreaInsets();
     const { showError } = useGlobalError();
     const queryClient = useQueryClient();
     const user = useAuthStore((state) => state.user);
@@ -99,7 +101,9 @@ export default function EpisodeGuideScreen() {
     );
 
     return (
-        <View className="flex-1 p-3" style={{ backgroundColor: Colors.background }}>
+        <View
+            className="flex-1 p-3"
+            style={{ backgroundColor: Colors.background, paddingBottom: insets.bottom }}>
             <FlatList
                 data={seasons}
                 keyExtractor={(item) => item.id.toString()}

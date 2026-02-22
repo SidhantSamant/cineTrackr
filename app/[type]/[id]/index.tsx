@@ -28,6 +28,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect, useMemo } from 'react';
 import { FlatList, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Animated from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const IMG_HEIGHT = 200;
 const HEADER_HEIGHT = 100;
@@ -35,6 +36,7 @@ const HEADER_HEIGHT = 100;
 const MediaDetailScreen = () => {
     const { id, type } = useLocalSearchParams<{ id: string; type: MediaType }>();
     const { showError } = useGlobalError();
+    const insets = useSafeAreaInsets();
 
     const { data, isLoading, error, refetch } = useQuery({
         queryKey: [type, id],
@@ -339,7 +341,7 @@ const MediaDetailScreen = () => {
                         {providers && <WatchProviders providers={providers} countryCode="IN" />}
 
                         {/* Collections / Recommendations */}
-                        <View className="-mx-4 gap-2 pl-4">
+                        <View className="-mx-4 gap-2 pl-4" style={{ marginBottom: insets.bottom }}>
                             {isLoadingCollections ? (
                                 <HorizontalListSkeleton />
                             ) : (

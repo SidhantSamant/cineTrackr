@@ -40,6 +40,13 @@
                     "resizeMode": "contain",
                     "backgroundColor": "#121212"
                 }
+            ],
+            [
+                "expo-navigation-bar",
+                {
+                    "backgroundColor": "#121212",
+                    "barStyle": "light"
+                }
             ]
         ],
         "experiments": {

@@ -190,7 +190,7 @@ const AuthBottomSheet = forwardRef<AuthBottomSheetRef, {}>((props, ref) => {
             detents={['auto']}
             cornerRadius={24}
             backgroundColor={'#121212'}
-            grabberOptions={{ width: 48, height: 6, topMargin: 12, color: '#ccc' }}
+            grabberOptions={{ width: 48, height: 4, topMargin: 12, color: '#ccc' }}
             grabber={true}>
             <Pressable onPress={Keyboard.dismiss} style={StyleSheet.absoluteFill} />
 

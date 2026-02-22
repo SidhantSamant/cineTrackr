@@ -15,6 +15,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import * as SystemUI from 'expo-system-ui';
 import { useEffect } from 'react';
+import * as NavigationBar from 'expo-navigation-bar';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -68,6 +69,7 @@ export default function RootLayout() {
     useEffect(() => {
         if (loaded) {
             SystemUI.setBackgroundColorAsync(Colors.background);
+            NavigationBar.setButtonStyleAsync('light');
             SplashScreen.hideAsync();
         }
     }, [loaded]);
@@ -91,10 +93,7 @@ function RootLayoutNav() {
                                 }}>
                                 <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
                                 <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
-                                <Stack.Screen
-                                    name="[type]/[id]"
-                                    options={{ title: '', headerShown: false }}
-                                />
+                                <Stack.Screen name="[type]/[id]" options={{ headerShown: false }} />
                             </Stack>
                         </AuthSheetProvider>
                     </ToastProvider>
