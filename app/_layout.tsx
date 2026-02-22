@@ -69,7 +69,7 @@ export default function RootLayout() {
     useEffect(() => {
         if (loaded) {
             SystemUI.setBackgroundColorAsync(Colors.background);
-            NavigationBar.setButtonStyleAsync('light');
+            NavigationBar.setStyle('dark');
             SplashScreen.hideAsync();
         }
     }, [loaded]);

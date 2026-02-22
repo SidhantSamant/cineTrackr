@@ -52,20 +52,15 @@ export default function LibraryListSection({
     const handleSeeAll = useCallback(() => {
         let targetType = 'tv';
         if (activeTab === 'movies') targetType = 'movie';
+
         const params: any = {
             title: title,
         };
 
         if (status) params.status = status;
         if (isFavorite !== undefined) params.isFavorite = isFavorite.toString();
-
-        if (activeTab !== 'all') {
-            params.type = targetType;
-        }
-
-        if (activeTab === 'anime') {
-            params.isAnime = true;
-        }
+        if (activeTab !== 'all') params.type = targetType;
+        if (activeTab === 'anime') params.isAnime = true;
 
         router.push({
             pathname: isGridView ? '/collection/library-list' : '/home/library-list',
@@ -76,6 +71,8 @@ export default function LibraryListSection({
     if (!isGridView && isLoading) {
         return <MediaListSkeleton hasTitle={true} />;
     }
+
+    if (!isGridView && activeTab === 'all' && data?.length === 0) return null;
 
     return (
         <View>

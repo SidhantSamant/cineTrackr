@@ -46,7 +46,7 @@ const AuthInput = forwardRef<TextInput, AuthInputProps>(
                     autoCapitalize="none"
                     className={`rounded-2xl border ${
                         isFocused ? 'border-primary' : 'border-neutral-800'
-                    } bg-neutral-900/50 px-4 py-4 text-base text-white ${className || ''}`}
+                    } bg-neutral-900/50 px-4 py-4 text-base text-white ${className}`}
                 />
             </View>
         );
@@ -190,7 +190,7 @@ const AuthBottomSheet = forwardRef<AuthBottomSheetRef, {}>((props, ref) => {
             detents={['auto']}
             cornerRadius={24}
             backgroundColor={'#121212'}
-            grabberOptions={{ width: 48, height: 4, topMargin: 12, color: '#ccc' }}
+            grabberOptions={{ width: 48, height: 4, topMargin: 12, color: '#fff' }}
             grabber={true}>
             <Pressable onPress={Keyboard.dismiss} style={StyleSheet.absoluteFill} />
 

@@ -246,7 +246,7 @@ const MediaDetailScreen = () => {
                         </View>
                     </View>
 
-                    <View className="bg-[#121212] px-4 pb-8 pt-4">
+                    <View className="bg-[#121212] px-3 pb-8 pt-4">
                         {/* Episode Guide */}
                         {type === 'tv' && (
                             <Pressable
@@ -341,7 +341,7 @@ const MediaDetailScreen = () => {
                         {providers && <WatchProviders providers={providers} countryCode="IN" />}
 
                         {/* Collections / Recommendations */}
-                        <View className="-mx-4 gap-2 pl-4" style={{ marginBottom: insets.bottom }}>
+                        <View className="gap-2" style={{ marginBottom: insets.bottom }}>
                             {isLoadingCollections ? (
                                 <HorizontalListSkeleton />
                             ) : (
