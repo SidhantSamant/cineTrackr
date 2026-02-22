@@ -11,6 +11,9 @@ type ParallaxConfig = {
     headerHeight: number;
 };
 
+const PARALLAX_FACTOR = 0.5;
+const FADE_DISTANCE = 50;
+
 export const useParallaxScroll = ({ imgHeight, headerHeight }: ParallaxConfig) => {
     const scrollOffset = useSharedValue(0);
 
@@ -25,7 +28,7 @@ export const useParallaxScroll = ({ imgHeight, headerHeight }: ParallaxConfig) =
                     translateY: interpolate(
                         scrollOffset.value,
                         [-imgHeight, 0, imgHeight],
-                        [-imgHeight * 0.5, 0, imgHeight * 0.5],
+                        [-imgHeight * PARALLAX_FACTOR, 0, imgHeight * PARALLAX_FACTOR],
                         Extrapolation.CLAMP,
                     ),
                 },
@@ -42,10 +45,13 @@ export const useParallaxScroll = ({ imgHeight, headerHeight }: ParallaxConfig) =
     });
 
     const headerAnimatedStyle = useAnimatedStyle(() => {
+        const fadeEnd = imgHeight - headerHeight;
+        const fadeStart = fadeEnd - FADE_DISTANCE;
+
         return {
             opacity: interpolate(
                 scrollOffset.value,
-                [imgHeight - headerHeight - 40, imgHeight - headerHeight],
+                [fadeStart, fadeEnd],
                 [0, 1],
                 Extrapolation.CLAMP,
             ),

@@ -1,6 +1,7 @@
 import CastItem from '@/components/CastItem';
 import HomeHorizontalList from '@/components/HorizontalMediaList';
 import ActionButton from '@/components/UI/ActionButton';
+import AnimatedHeader from '@/components/UI/AnimatedHeader';
 import { DetailScreenSkeleton, HorizontalListSkeleton } from '@/components/UI/Skeletons';
 import WatchProviders from '@/components/WatchProviders';
 import { Colors } from '@/constants/Colors';
@@ -23,20 +24,18 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { useQuery } from '@tanstack/react-query';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
-import { router, Stack, useLocalSearchParams } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo } from 'react';
 import { FlatList, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-const IMG_HEIGHT = 200;
-const HEADER_HEIGHT = 100;
-
 const MediaDetailScreen = () => {
     const { id, type } = useLocalSearchParams<{ id: string; type: MediaType }>();
     const { showError } = useGlobalError();
     const insets = useSafeAreaInsets();
+    const HEADER_HEIGHT = insets.top + 56;
+    const IMG_HEIGHT = 200;
 
     const { data, isLoading, error, refetch } = useQuery({
         queryKey: [type, id],
@@ -105,32 +104,10 @@ const MediaDetailScreen = () => {
 
     return (
         <View className="flex-1 bg-[#121212]">
-            <StatusBar style="light" />
-
-            <Stack.Screen
-                options={{
-                    headerShown: true,
-                    headerTitle: () => (
-                        <Animated.Text
-                            numberOfLines={1}
-                            style={[styles.headerTitle, headerAnimatedStyle]}>
-                            {mediaTitle}
-                        </Animated.Text>
-                    ),
-                    headerTitleAlign: 'center',
-                    headerTransparent: true,
-                    headerLeft: () => (
-                        <Pressable
-                            className="rounded-full bg-black/40 p-2 active:bg-black/60"
-                            onPress={router.back}
-                            hitSlop={20}>
-                            <Ionicons name="chevron-back" size={24} color="white" />
-                        </Pressable>
-                    ),
-                    headerBackground: () => (
-                        <Animated.View style={[styles.header, headerAnimatedStyle]} />
-                    ),
-                }}
+            <AnimatedHeader
+                title={mediaTitle}
+                headerHeight={HEADER_HEIGHT}
+                animatedStyle={headerAnimatedStyle}
             />
 
             {isLoading || isLibraryItemLoading ? (
@@ -143,6 +120,8 @@ const MediaDetailScreen = () => {
                     onScroll={onScroll}
                     showsVerticalScrollIndicator={false}
                     scrollEventThrottle={16}
+                    contentInsetAdjustmentBehavior="never"
+                    scrollIndicatorInsets={{ top: HEADER_HEIGHT }}
                     overScrollMode="never">
                     <View style={{ backgroundColor: Colors.background }}>
                         {/* Parallax Backdrop */}
@@ -373,16 +352,6 @@ const MediaDetailScreen = () => {
 };
 
 const styles = StyleSheet.create({
-    header: {
-        backgroundColor: Colors.background,
-        height: HEADER_HEIGHT,
-    },
-    headerTitle: {
-        color: 'white',
-        fontWeight: '600',
-        fontSize: 18,
-        marginHorizontal: 16,
-    },
     backdropImage: {
         width: '100%',
         height: '100%',
