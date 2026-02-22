@@ -1,3 +1,11 @@
+import { Colors } from '@/constants/Colors';
+import { MyDarkTheme } from '@/constants/Theme';
+import { AuthSheetProvider } from '@/context/AuthSheetContext';
+import { GlobalErrorProvider } from '@/context/GlobalErrorContext';
+import { ToastProvider } from '@/context/ToastContext';
+import '@/global.css';
+import { supabase } from '@/lib/supabase';
+import { useAuthStore } from '@/store/useAuthStore';
 import { Ionicons } from '@expo/vector-icons';
 import { ThemeProvider } from '@react-navigation/native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -7,13 +15,6 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import * as SystemUI from 'expo-system-ui';
 import { useEffect } from 'react';
-import { Colors } from '@/constants/Colors';
-import { MyDarkTheme } from '@/constants/Theme';
-import { GlobalErrorProvider } from '@/context/GlobalErrorContext';
-import '@/global.css';
-import { supabase } from '@/lib/supabase';
-import { useAuthStore } from '@/store/useAuthStore';
-import { ToastProvider } from '@/context/ToastContext';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -83,18 +84,19 @@ function RootLayoutNav() {
                 <StatusBar style="light" />
                 <GlobalErrorProvider>
                     <ToastProvider>
-                        <Stack
-                            screenOptions={{
-                                contentStyle: { backgroundColor: Colors.background },
-                            }}>
-                            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                            <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-                            <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
-                            <Stack.Screen
-                                name="[type]/[id]"
-                                options={{ title: '', headerShown: false }}
-                            />
-                        </Stack>
+                        <AuthSheetProvider>
+                            <Stack
+                                screenOptions={{
+                                    contentStyle: { backgroundColor: Colors.background },
+                                }}>
+                                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                                <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+                                <Stack.Screen
+                                    name="[type]/[id]"
+                                    options={{ title: '', headerShown: false }}
+                                />
+                            </Stack>
+                        </AuthSheetProvider>
                     </ToastProvider>
                 </GlobalErrorProvider>
             </ThemeProvider>

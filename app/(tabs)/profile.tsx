@@ -1,16 +1,15 @@
 import { Colors } from '@/constants/Colors';
+import { useAuthSheet } from '@/context/AuthSheetContext';
 import { useGlobalError } from '@/context/GlobalErrorContext';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/store/useAuthStore';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 
 const ProfileScreen = () => {
-    const router = useRouter();
     const user = useAuthStore((state) => state.user);
     const signOutStore = useAuthStore((state) => state.signOut);
-
+    const { presentLogin, presentSignup } = useAuthSheet();
     const { showWarning } = useGlobalError();
 
     const handleSignOut = async () => {
@@ -108,14 +107,12 @@ const ProfileScreen = () => {
                         </Text>
 
                         <Pressable
-                            onPress={() => router.push('/(auth)/login')}
+                            onPress={presentLogin}
                             className="w-full flex-row items-center justify-center rounded-full bg-white py-3.5 active:bg-neutral-200">
                             <Text className="text-base font-bold text-black">Sign In</Text>
                         </Pressable>
 
-                        <Pressable
-                            onPress={() => router.push('/(auth)/signup')}
-                            className="mt-4 p-2">
+                        <Pressable onPress={presentSignup} className="mt-4 p-2">
                             <Text className="font-semibold text-neutral-400">
                                 Don't have an account? <Text className="text-white">Sign Up</Text>
                             </Text>

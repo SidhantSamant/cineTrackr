@@ -1,3 +1,4 @@
+import { useAuthSheet } from '@/context/AuthSheetContext';
 import { useGlobalError } from '@/context/GlobalErrorContext';
 import { useToast } from '@/context/ToastContext';
 import { useLibraryMutations } from '@/hooks/useLibrary';
@@ -5,7 +6,6 @@ import UserLibraryVM, { MediaStatus, MediaType } from '@/models/UserLibraryVM';
 import { useAuthStore } from '@/store/useAuthStore';
 import { getYouTubeKey } from '@/utils/detailHelper';
 import { mapTmdbToLibraryItem } from '@/utils/mappers';
-import { useRouter } from 'expo-router';
 import { Linking } from 'react-native';
 
 type Params = {
@@ -18,15 +18,15 @@ export const useMediaActions = ({ libraryItem, data, type }: Params) => {
     const user = useAuthStore((state) => state.user);
     const { showWarning } = useGlobalError();
     const { showErrorToast, showSuccessToast } = useToast();
-    const router = useRouter();
     const { addToLibrary, removeFromLibrary, updateStatus, toggleFavorite } = useLibraryMutations();
+    const { presentLogin } = useAuthSheet();
 
     const requireAuth = (actionName: string) => {
         if (!user) {
             showWarning({
                 message: `Sign in to ${actionName}`,
                 rightButtonText: 'Sign In',
-                onRightButtonPress: () => router.navigate('/(auth)/login'),
+                onRightButtonPress: presentLogin,
             });
             return false;
         }

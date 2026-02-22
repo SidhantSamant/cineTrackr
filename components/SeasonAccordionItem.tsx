@@ -12,7 +12,6 @@ import { getRatingColor } from '@/utils/uiHelper';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { Image } from 'expo-image';
-import { router } from 'expo-router';
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, {
@@ -26,6 +25,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import EpisodeItem from './EpisodeItem';
 import { EpisodeListSkeleton } from './UI/Skeletons';
+import { useAuthSheet } from '@/context/AuthSheetContext';
 
 interface Props {
     tvShowId: number;
@@ -44,6 +44,7 @@ const SeasonAccordionItem = ({
 }: Props) => {
     const { showError, showWarning } = useGlobalError();
     const { toggleSeason, toggleEpisode } = useEpisodeGuide();
+    const { presentLogin } = useAuthSheet();
     const user = useAuthStore((state) => state.user);
     const [renderLimit, setRenderLimit] = useState(20);
     const chevronRotation = useSharedValue(0);
@@ -139,9 +140,9 @@ const SeasonAccordionItem = ({
     const handleToggleSeason = useCallback(() => {
         if (!user)
             return showWarning({
-                message: 'Sign in',
+                message: 'Sign in required',
                 rightButtonText: 'Sign In',
-                onRightButtonPress: () => router.navigate('/(auth)/login'),
+                onRightButtonPress: presentLogin,
             });
         if (isLoading) return;
 
@@ -168,7 +169,7 @@ const SeasonAccordionItem = ({
                 return showWarning({
                     message: `Sign in required`,
                     rightButtonText: 'Sign In',
-                    onRightButtonPress: () => router.navigate('/(auth)/login'),
+                    onRightButtonPress: presentLogin,
                 });
             }
 
