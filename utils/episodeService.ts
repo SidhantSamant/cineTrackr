@@ -11,14 +11,12 @@ class EpisodeService {
      * The DB Trigger handles updating the 'episodes_watched' count.
      */
     public async toggleEpisode(
+        userId: string,
         show: UserLibraryVM,
         season: number,
         episode: number,
         markAsWatched: boolean,
     ) {
-        const user = useAuthStore.getState().user;
-        if (!user) throw new Error('User not logged in');
-
         if (markAsWatched) {
             const { error: libError } = await supabase.from('user_library').upsert(show, {
                 onConflict: 'user_id, tmdb_id, media_type',
@@ -28,7 +26,7 @@ class EpisodeService {
             if (libError) throw libError;
 
             const { error } = await supabase.from('user_episodes').upsert({
-                user_id: user.id,
+                user_id: userId,
                 tmdb_id: show.tmdb_id,
                 season_number: season,
                 episode_number: episode,
@@ -37,7 +35,7 @@ class EpisodeService {
             if (error) throw error;
         } else {
             const { error } = await supabase.from('user_episodes').delete().match({
-                user_id: user.id,
+                user_id: userId,
                 tmdb_id: show.tmdb_id,
                 season_number: season,
                 episode_number: episode,
@@ -47,14 +45,12 @@ class EpisodeService {
     }
 
     public async toggleSeason(
+        userId: string,
         show: UserLibraryVM,
         seasonNumber: number,
         episodeCount: number,
         markAsWatched: boolean,
     ) {
-        const user = useAuthStore.getState().user;
-        if (!user) throw new Error('User not logged in');
-
         if (markAsWatched) {
             const { error: libError } = await supabase.from('user_library').upsert(show, {
                 onConflict: 'user_id, tmdb_id, media_type',
@@ -64,7 +60,7 @@ class EpisodeService {
             if (libError) throw libError;
 
             const episodes = Array.from({ length: episodeCount }, (_, i) => ({
-                user_id: user.id,
+                user_id: userId,
                 tmdb_id: show.tmdb_id,
                 season_number: seasonNumber,
                 episode_number: i + 1,
@@ -79,7 +75,7 @@ class EpisodeService {
             if (error) throw error;
         } else {
             const { error } = await supabase.from('user_episodes').delete().match({
-                user_id: user.id,
+                user_id: userId,
                 tmdb_id: show.tmdb_id,
                 season_number: seasonNumber,
             });
@@ -93,10 +89,7 @@ class EpisodeService {
      * If true: Marks as 'completed' and bulk-inserts all released episodes.
      * If false: Marks as 'watching' and clears all episode history for this show.
      */
-    public async toggleShowWatched(tmdbData: any, isWatched: boolean) {
-        const user = useAuthStore.getState().user;
-        if (!user) throw new Error('User not logged in');
-
+    public async toggleShowWatched(userId: string, tmdbData: any, isWatched: boolean) {
         if (isWatched) {
             const allEpisodes: any[] = [];
             const lastSeason = tmdbData?.last_episode_to_air?.season_number || 999;
@@ -112,7 +105,7 @@ class EpisodeService {
 
                 for (let i = 1; i <= limit; i++) {
                     allEpisodes.push({
-                        user_id: user.id,
+                        user_id: userId,
                         tmdb_id: tmdbData.id,
                         season_number: s.season_number,
                         episode_number: i,
@@ -131,7 +124,7 @@ class EpisodeService {
             const { error } = await supabase
                 .from('user_episodes')
                 .delete()
-                .match({ user_id: user.id, tmdb_id: tmdbData.id });
+                .match({ user_id: userId, tmdb_id: tmdbData.id });
             if (error) throw error;
         }
     }

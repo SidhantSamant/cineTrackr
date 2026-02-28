@@ -3,6 +3,7 @@ import UserEpisodeVM from '@/models/UserEpisodeVM';
 import { episodeService } from '@/utils/episodeService';
 import { QUERY_KEYS } from './useLibrary';
 import UserLibraryVM from '@/models/UserLibraryVM';
+import { useAuthStore } from '@/store/useAuthStore';
 
 type ToggleEpisodeProps = {
     show: UserLibraryVM;
@@ -20,11 +21,12 @@ type ToggleSeasonProps = {
 
 export const useEpisodeGuide = () => {
     const queryClient = useQueryClient();
+    const userId = useAuthStore((state) => state.user?.id) || 'temp-user';
 
     // 1. Toggle Single Episode
     const toggleEpisode = useMutation({
         mutationFn: async ({ show, season, episode, markAsWatched }: ToggleEpisodeProps) => {
-            return episodeService.toggleEpisode(show, season, episode, markAsWatched);
+            return episodeService.toggleEpisode(userId, show, season, episode, markAsWatched);
         },
         onMutate: async ({ show, season, episode, markAsWatched }) => {
             const queryKey = QUERY_KEYS.episodes(show.tmdb_id, season);
@@ -44,7 +46,7 @@ export const useEpisodeGuide = () => {
                             tmdb_id: show.tmdb_id,
                             season_number: season,
                             episode_number: episode,
-                            user_id: 'temp-user',
+                            user_id: userId,
                         } as UserEpisodeVM,
                     ];
                 } else {
@@ -73,7 +75,7 @@ export const useEpisodeGuide = () => {
     // 2. Toggle Entire Season
     const toggleSeason = useMutation({
         mutationFn: async ({ show, seasonNum, epCount, isWatched }: ToggleSeasonProps) => {
-            return episodeService.toggleSeason(show, seasonNum, epCount, isWatched);
+            return episodeService.toggleSeason(userId, show, seasonNum, epCount, isWatched);
         },
         onMutate: async ({ show, seasonNum, epCount, isWatched }) => {
             const queryKey = QUERY_KEYS.episodes(show.tmdb_id, seasonNum);
@@ -93,7 +95,7 @@ export const useEpisodeGuide = () => {
                             tmdb_id: show.tmdb_id,
                             season_number: seasonNum,
                             episode_number: i + 1,
-                            user_id: 'temp-user',
+                            user_id: userId,
                         }) as UserEpisodeVM,
                 );
             });
@@ -119,7 +121,7 @@ export const useEpisodeGuide = () => {
     // 3. Toggle Entire Show as Watched
     const toggleShowWatched = useMutation({
         mutationFn: async ({ tmdbData, isWatched }: { tmdbData: any; isWatched: boolean }) => {
-            return episodeService.toggleShowWatched(tmdbData, isWatched);
+            return episodeService.toggleShowWatched(userId, tmdbData, isWatched);
         },
         onMutate: async ({ tmdbData, isWatched }) => {
             await queryClient.cancelQueries({
@@ -152,7 +154,7 @@ export const useEpisodeGuide = () => {
                             tmdb_id: tmdbData.id,
                             season_number: s.season_number,
                             episode_number: i + 1,
-                            user_id: 'temp-user',
+                            user_id: userId,
                         })),
                     );
                 }
