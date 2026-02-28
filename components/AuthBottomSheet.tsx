@@ -1,4 +1,3 @@
-import { Colors } from '@/constants/Colors';
 import { useGlobalError } from '@/context/GlobalErrorContext';
 import { useToast } from '@/context/ToastContext';
 import { supabase } from '@/lib/supabase';
@@ -15,44 +14,10 @@ import {
     StyleSheet,
     Text,
     TextInput,
-    TextInputProps,
     View,
 } from 'react-native';
-
-interface AuthInputProps extends TextInputProps {
-    label: string;
-}
-
-const AuthInput = forwardRef<TextInput, AuthInputProps>(
-    ({ label, onFocus, onBlur, className, ...props }, ref) => {
-        const [isFocused, setIsFocused] = useState(false);
-
-        return (
-            <View>
-                <Text className="mb-2 ml-1 text-xs font-bold uppercase tracking-widest text-neutral-500">
-                    {label}
-                </Text>
-                <TextInput
-                    ref={ref}
-                    {...props}
-                    onFocus={(e) => {
-                        setIsFocused(true);
-                        onFocus?.(e);
-                    }}
-                    onBlur={(e) => {
-                        setIsFocused(false);
-                        onBlur?.(e);
-                    }}
-                    placeholderTextColor={Colors.placeholderText}
-                    autoCapitalize="none"
-                    className={`rounded-2xl border ${
-                        isFocused ? 'border-primary' : 'border-neutral-800'
-                    } bg-neutral-900/50 px-4 py-4 text-base text-white ${className}`}
-                />
-            </View>
-        );
-    },
-);
+import AuthInput from './UI/AuthInput';
+import { useAuthStore } from '@/store/useAuthStore';
 
 export interface AuthBottomSheetRef {
     present: (mode: 'login' | 'signup') => void;
@@ -61,11 +26,13 @@ export interface AuthBottomSheetRef {
 const AuthBottomSheet = forwardRef<AuthBottomSheetRef, {}>((props, ref) => {
     const { showError } = useGlobalError();
     const { showSuccessToast } = useToast();
+    const setSession = useAuthStore((state) => state.setSession);
+
     const sheetRef = useRef<TrueSheet>(null);
     const passwordRef = useRef<TextInput>(null);
     const confirmPasswordRef = useRef<TextInput>(null);
-    const [mode, setMode] = useState<'login' | 'signup'>('login');
 
+    const [mode, setMode] = useState<'login' | 'signup'>('login');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
@@ -119,9 +86,15 @@ const AuthBottomSheet = forwardRef<AuthBottomSheetRef, {}>((props, ref) => {
             if (error) throw error;
             return data;
         },
-        onSuccess: () => {
-            handleDismiss();
-            showSuccessToast?.('Login successful!');
+        onSuccess: (data) => {
+            const { session } = data;
+            if (!session) {
+                showError("Couldn't login. Please try again.");
+            } else {
+                setSession(session);
+                handleDismiss();
+                showSuccessToast('Login successful!');
+            }
         },
         onError: (error: any) => {
             showError({
@@ -143,8 +116,9 @@ const AuthBottomSheet = forwardRef<AuthBottomSheetRef, {}>((props, ref) => {
             if (!session) {
                 showError("Couldn't create account. Please try again.");
             } else {
+                setSession(session);
                 handleDismiss();
-                showSuccessToast?.('Registration successful!');
+                showSuccessToast('Registration successful!');
             }
         },
         onError: (error: any) => {
@@ -157,6 +131,7 @@ const AuthBottomSheet = forwardRef<AuthBottomSheetRef, {}>((props, ref) => {
     });
 
     const handleLogin = () => {
+        Keyboard.dismiss();
         const emailCheck = validate.email(inputs.email);
         if (!emailCheck.isValid && emailCheck.error) return showError(emailCheck.error);
         if (!inputs.password) return showError('Please enter your password');
@@ -164,6 +139,7 @@ const AuthBottomSheet = forwardRef<AuthBottomSheetRef, {}>((props, ref) => {
     };
 
     const handleSignup = () => {
+        Keyboard.dismiss();
         const emailCheck = validate.email(inputs.email);
         if (!emailCheck.isValid && emailCheck.error) return showError(emailCheck.error);
         const passwordCheck = validate.password(password);

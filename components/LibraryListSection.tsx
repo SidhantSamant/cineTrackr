@@ -6,6 +6,7 @@ import AnimatedHorizontalList from './UI/AnimatedHorizontalList';
 import { MediaListSkeleton } from './UI/Skeletons';
 import LibraryGridList from './LibraryGridList';
 import { router } from 'expo-router';
+import { useAuthStore } from '@/store/useAuthStore';
 
 interface LibraryListSectionProps {
     title: string;
@@ -25,6 +26,7 @@ export default function LibraryListSection({
     emptyMessage = 'No items found',
 }: LibraryListSectionProps) {
     const [activeTab, setActiveTab] = useState<ListMediaType>('all');
+    const userId = useAuthStore((state) => state.user?.id);
 
     const visibleTabs = useMemo(() => {
         const tabs: ListMediaType[] = ['all', 'shows', 'anime', 'movies'];
@@ -47,7 +49,11 @@ export default function LibraryListSection({
         } as any;
     }, [activeTab, status, isFavorite, showMovieTab]);
 
-    const { data, isLoading, isPlaceholderData } = useMappedLibrary(filters, isGridView ? 8 : 20);
+    const { data, isLoading, isPlaceholderData } = useMappedLibrary(
+        userId,
+        filters,
+        isGridView ? 8 : 20,
+    );
 
     const handleSeeAll = useCallback(() => {
         let targetType = 'tv';

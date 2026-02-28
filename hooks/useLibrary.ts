@@ -11,16 +11,6 @@ export const QUERY_KEYS = {
     episodes: (showId: number, seasonNum: number) => ['user-episodes', showId, seasonNum],
 };
 
-// export const useLibrary = (status?: MediaStatus, isAnime?: boolean) => {
-//     const { user } = useAuthStore();
-
-//     return useQuery({
-//         queryKey: [QUERY_KEYS.library, status, isAnime],
-//         queryFn: () => libraryService.getLibrary(status, isAnime),
-//         enabled: !!user,
-//     });
-// };
-
 export const useItemStatus = (tmdbId: number, mediaType: MediaType) => {
     const { user } = useAuthStore();
 
@@ -73,10 +63,6 @@ export const useLibraryMutations = () => {
                 queryKey: [QUERY_KEYS.itemStatus, vars.tmdb_id, vars.media_type],
             });
             queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.library] });
-
-            // queryClient.invalidateQueries({
-            //     queryKey: [QUERY_KEYS.library, { status: 'watchlist' } satisfies LibraryFilters],
-            // });
         },
     });
 
@@ -143,9 +129,7 @@ export const useLibraryMutations = () => {
             queryClient.invalidateQueries({
                 queryKey: [QUERY_KEYS.itemStatus, vars.tmdbId, vars.mediaType],
             });
-            queryClient.invalidateQueries({
-                queryKey: [QUERY_KEYS.library, { isFavorite: true } satisfies LibraryFilters],
-            });
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.library] });
         },
     });
 

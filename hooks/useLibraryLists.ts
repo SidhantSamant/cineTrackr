@@ -3,13 +3,18 @@ import { mapLibraryToTmdb } from '@/utils/mappers';
 import { LibraryFilters, libraryService } from '@/utils/libraryService';
 import { QUERY_KEYS } from './useLibrary';
 
-export const useMappedLibrary = (filters: LibraryFilters, limit?: number) => {
+export const useMappedLibrary = (
+    userId: string | undefined,
+    filters: LibraryFilters,
+    limit?: number,
+) => {
     return useQuery({
-        queryKey: [QUERY_KEYS.library, filters],
+        queryKey: [QUERY_KEYS.library, userId, filters],
         queryFn: async () => {
             const data = await libraryService.getLibrary(filters, 1, limit);
             return data.map(mapLibraryToTmdb);
         },
         placeholderData: keepPreviousData,
+        enabled: !!userId,
     });
 };
