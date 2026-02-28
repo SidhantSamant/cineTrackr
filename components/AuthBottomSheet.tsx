@@ -2,6 +2,7 @@ import { Colors } from '@/constants/Colors';
 import { useGlobalError } from '@/context/GlobalErrorContext';
 import { useToast } from '@/context/ToastContext';
 import { supabase } from '@/lib/supabase';
+import { getSupabaseAuthError } from '@/utils/uiHelper';
 import { validate } from '@/utils/validationHelper';
 import { TrueSheet } from '@lodev09/react-native-true-sheet';
 import { useMutation } from '@tanstack/react-query';
@@ -124,7 +125,7 @@ const AuthBottomSheet = forwardRef<AuthBottomSheetRef, {}>((props, ref) => {
         },
         onError: (error: any) => {
             showError({
-                message: error.message,
+                message: getSupabaseAuthError(error),
                 rightButtonText: 'Retry',
                 onRightButtonPress: handleLogin,
             });
@@ -148,7 +149,7 @@ const AuthBottomSheet = forwardRef<AuthBottomSheetRef, {}>((props, ref) => {
         },
         onError: (error: any) => {
             showError({
-                message: error.message,
+                message: getSupabaseAuthError(error),
                 rightButtonText: 'Retry',
                 onRightButtonPress: handleSignup,
             });

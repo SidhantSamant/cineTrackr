@@ -8,6 +8,7 @@ class ApiClient {
         this.axiosInstance = axios.create({
             baseURL,
             headers,
+            timeout: 10000,
         });
     }
 
@@ -57,8 +58,11 @@ class ApiClient {
 
     // Generic error handler
     private handleError(error: any): void {
-        console.error('API Error:', error);
-        // throw new Error(error?.response?.data?.message || 'Something went wrong');
+        if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+            console.error('TMDB took too long to respond. It might be blocked by your ISP.');
+        } else {
+            console.error('API Error:', error.message);
+        }
     }
 }
 

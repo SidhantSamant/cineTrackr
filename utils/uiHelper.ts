@@ -137,3 +137,37 @@ export const formatDateFast = (dateString?: string) => {
     const day = parseInt(parts[2], 10);
     return `${months[monthIndex]} ${day}`;
 };
+
+export const getSupabaseAuthError = (error: any): string => {
+    const msg = error?.message?.toLowerCase() || '';
+
+    if (msg.includes('invalid login credentials')) {
+        return 'Incorrect email or password. Please try again.';
+    }
+    if (msg.includes('email not confirmed')) {
+        return 'Please verify your email address before logging in.';
+    }
+    if (msg.includes('user already registered') || msg.includes('already exists')) {
+        return 'An account with this email already exists. Try logging in!';
+    }
+    if (msg.includes('password should be at least')) {
+        return 'Your password is too weak. Please use at least 6 characters.';
+    }
+    if (msg.includes('invalid email') || msg.includes('unable to validate email')) {
+        return 'Please enter a valid email address.';
+    }
+    if (msg.includes('signups not allowed')) {
+        return 'Registration is currently closed.';
+    }
+    if (msg.includes('too many requests') || msg.includes('rate limit')) {
+        return 'Too many attempts. For your security, please wait a minute and try again.';
+    }
+    if (msg.includes('network') || msg.includes('timeout') || msg.includes('failed to fetch')) {
+        return 'Network error. Please check your internet connection and try again.';
+    }
+    if (msg.includes('json parse') || msg.includes('unexpected character')) {
+        return 'Connection blocked. If you are on Wi-Fi, try using cellular data or a VPN.';
+    }
+
+    return 'Something went wrong. Please try again.';
+};

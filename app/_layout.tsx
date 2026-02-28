@@ -31,8 +31,8 @@ export const unstable_settings = {
 export const queryClient = new QueryClient({
     defaultOptions: {
         queries: {
-            staleTime: 1000 * 60 * 15,
-            gcTime: 1000 * 60 * 30,
+            staleTime: 1000 * 60 * 30,
+            gcTime: 1000 * 60 * 60,
             retry: 2,
             refetchOnWindowFocus: false,
             refetchOnReconnect: true,
