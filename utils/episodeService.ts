@@ -1,11 +1,7 @@
 import { supabase } from '@/lib/supabase';
 import UserEpisodeVM from '@/models/UserEpisodeVM';
 import UserLibraryVM from '@/models/UserLibraryVM';
-
-interface SeasonData {
-    season_number: number;
-    episode_count: number;
-}
+import { useAuthStore } from '@/store/useAuthStore';
 
 class EpisodeService {
     /**
@@ -20,9 +16,7 @@ class EpisodeService {
         episode: number,
         markAsWatched: boolean,
     ) {
-        const {
-            data: { user },
-        } = await supabase.auth.getUser();
+        const user = useAuthStore.getState().user;
         if (!user) throw new Error('User not logged in');
 
         if (markAsWatched) {
@@ -52,17 +46,13 @@ class EpisodeService {
         }
     }
 
-    // services/EpisodeService.ts
-
     public async toggleSeason(
         show: UserLibraryVM,
         seasonNumber: number,
         episodeCount: number,
         markAsWatched: boolean,
     ) {
-        const {
-            data: { user },
-        } = await supabase.auth.getUser();
+        const user = useAuthStore.getState().user;
         if (!user) throw new Error('User not logged in');
 
         if (markAsWatched) {
@@ -97,55 +87,53 @@ class EpisodeService {
             if (error) throw error;
         }
     }
+
     /**
-     * Marks an entire show as completed by bulk-inserting all episodes.
-     * The DB Trigger will see the massive jump in count and set status='completed'.
+     * Toggles an entire show's watched status.
+     * If true: Marks as 'completed' and bulk-inserts all released episodes.
+     * If false: Marks as 'watching' and clears all episode history for this show.
      */
-    public async markShowCompleted(show: UserLibraryVM, seasons: SeasonData[]) {
-        const {
-            data: { user },
-        } = await supabase.auth.getUser();
+    public async toggleShowWatched(tmdbData: any, isWatched: boolean) {
+        const user = useAuthStore.getState().user;
         if (!user) throw new Error('User not logged in');
 
-        // 1. Ensure Library Item Exists first
-        const { error: libError } = await supabase.from('user_library').upsert(
-            {
-                ...show,
-                user_id: user.id,
-                status: 'completed', // We can proactively set this here
-            },
-            { onConflict: 'user_id, tmdb_id, media_type' },
-        );
-        if (libError) throw libError;
+        if (isWatched) {
+            const allEpisodes: any[] = [];
+            const lastSeason = tmdbData?.last_episode_to_air?.season_number || 999;
+            const lastEp = tmdbData?.last_episode_to_air?.episode_number || 9999;
 
-        // 2. Generate ALL episode rows in memory
-        const allEpisodes: any[] = [];
+            (tmdbData?.seasons || []).forEach((s: any) => {
+                if (s.season_number === 0 || s.season_number > lastSeason) return;
 
-        seasons.forEach((season) => {
-            // Skip Specials (Season 0) for completion logic usually
-            if (season.season_number === 0) return;
+                const limit =
+                    s.season_number === lastSeason
+                        ? Math.min(s.episode_count || 0, lastEp)
+                        : s.episode_count || 0;
 
-            for (let ep = 1; ep <= season.episode_count; ep++) {
-                allEpisodes.push({
-                    user_id: user.id,
-                    tmdb_id: show.tmdb_id,
-                    season_number: season.season_number,
-                    episode_number: ep,
-                    is_watched: true,
-                    // watched_at: new Date().toISOString(),
+                for (let i = 1; i <= limit; i++) {
+                    allEpisodes.push({
+                        user_id: user.id,
+                        tmdb_id: tmdbData.id,
+                        season_number: s.season_number,
+                        episode_number: i,
+                    });
+                }
+            });
+
+            if (allEpisodes.length > 0) {
+                const { error } = await supabase.from('user_episodes').upsert(allEpisodes, {
+                    onConflict: 'user_id, tmdb_id, season_number, episode_number',
+                    ignoreDuplicates: true,
                 });
+                if (error) throw error;
             }
-        });
-
-        // 3. Bulk Upsert (The magic step)
-        // Supabase handles large batches well, but if you have 1000+ eps (One Piece),
-        // you might want to chunk this. For standard shows, one batch is fine.
-        const { error } = await supabase.from('user_episodes').upsert(allEpisodes, {
-            onConflict: 'user_id, tmdb_id, season_number, episode_number',
-            ignoreDuplicates: true, // Crucial: Don't overwrite existing timestamps
-        });
-
-        if (error) throw error;
+        } else {
+            const { error } = await supabase
+                .from('user_episodes')
+                .delete()
+                .match({ user_id: user.id, tmdb_id: tmdbData.id });
+            if (error) throw error;
+        }
     }
 
     /**
@@ -156,11 +144,8 @@ class EpisodeService {
         tmdbId: number,
         seasonNumber: number,
     ): Promise<UserEpisodeVM[]> {
-        const {
-            data: { user },
-        } = await supabase.auth.getUser();
+        const user = useAuthStore.getState().user;
 
-        // If no user, return empty (don't throw, just show nothing watched)
         if (!user) return [];
 
         const { data, error } = await supabase

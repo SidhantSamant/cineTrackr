@@ -106,11 +106,11 @@ const SectionHeader = memo(
                 <Pressable
                     className="flex-row items-center active:opacity-70"
                     onPress={handleHeaderPress}>
-                    <Text className="mr-1 text-lg font-bold uppercase tracking-tight text-white">
+                    <Text className="mr-1 text-lg font-semibold tracking-tight text-white">
                         {title}
                     </Text>
                     <Animated.View style={arrowStyle}>
-                        <Ionicons name="chevron-forward" size={16} color={Colors.primary} />
+                        <Ionicons name="chevron-forward-sharp" size={16} color={Colors.primary} />
                     </Animated.View>
                 </Pressable>
 

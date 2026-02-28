@@ -1,12 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '../store/useAuthStore';
 import UserLibraryVM, { MediaStatus, MediaType } from '@/models/UserLibraryVM';
-import { libraryService } from '@/utils/libraryService';
+import { LibraryFilters, libraryService } from '@/utils/libraryService';
 
 // Query Keys for Caching
 export const QUERY_KEYS = {
     library: 'user-library',
     itemStatus: 'library-item-status',
+    userEpisodes: 'user-episodes',
     episodes: (showId: number, seasonNum: number) => ['user-episodes', showId, seasonNum],
 };
 
@@ -71,7 +72,11 @@ export const useLibraryMutations = () => {
             queryClient.invalidateQueries({
                 queryKey: [QUERY_KEYS.itemStatus, vars.tmdb_id, vars.media_type],
             });
-            // queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.library] });
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.library] });
+
+            // queryClient.invalidateQueries({
+            //     queryKey: [QUERY_KEYS.library, { status: 'watchlist' } satisfies LibraryFilters],
+            // });
         },
     });
 
@@ -98,7 +103,7 @@ export const useLibraryMutations = () => {
             queryClient.invalidateQueries({
                 queryKey: [QUERY_KEYS.itemStatus, vars.tmdbId, vars.mediaType],
             });
-            // queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.library] });
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.library] });
         },
     });
 
@@ -138,7 +143,9 @@ export const useLibraryMutations = () => {
             queryClient.invalidateQueries({
                 queryKey: [QUERY_KEYS.itemStatus, vars.tmdbId, vars.mediaType],
             });
-            // queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.library] });
+            queryClient.invalidateQueries({
+                queryKey: [QUERY_KEYS.library, { isFavorite: true } satisfies LibraryFilters],
+            });
         },
     });
 
@@ -181,7 +188,7 @@ export const useLibraryMutations = () => {
             queryClient.invalidateQueries({
                 queryKey: [QUERY_KEYS.itemStatus, vars.tmdbId, vars.mediaType],
             });
-            // queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.library] });
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.library] });
         },
     });
 

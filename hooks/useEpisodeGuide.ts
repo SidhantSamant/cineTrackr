@@ -66,6 +66,7 @@ export const useEpisodeGuide = () => {
             queryClient.invalidateQueries({
                 queryKey: QUERY_KEYS.episodes(vars.show.tmdb_id, vars.season),
             });
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.library] });
         },
     });
 
@@ -111,8 +112,72 @@ export const useEpisodeGuide = () => {
             queryClient.invalidateQueries({
                 queryKey: QUERY_KEYS.episodes(vars.show.tmdb_id, vars.seasonNum),
             });
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.library] });
         },
     });
 
-    return { toggleEpisode, toggleSeason };
+    // 3. Toggle Entire Show as Watched
+    const toggleShowWatched = useMutation({
+        mutationFn: async ({ tmdbData, isWatched }: { tmdbData: any; isWatched: boolean }) => {
+            return episodeService.toggleShowWatched(tmdbData, isWatched);
+        },
+        onMutate: async ({ tmdbData, isWatched }) => {
+            await queryClient.cancelQueries({
+                queryKey: [QUERY_KEYS.userEpisodes, tmdbData.id],
+            });
+
+            const previousSeasonsData: Record<number, any> = {};
+            const lastSeason = tmdbData?.last_episode_to_air?.season_number || 999;
+            const lastEp = tmdbData?.last_episode_to_air?.episode_number || 9999;
+
+            (tmdbData?.seasons || []).forEach((s: any) => {
+                if (s.season_number === 0) return;
+
+                const seasonKey = QUERY_KEYS.episodes(tmdbData.id, s.season_number);
+
+                previousSeasonsData[s.season_number] = queryClient.getQueryData(seasonKey);
+
+                if (!isWatched) {
+                    queryClient.setQueryData(seasonKey, []);
+                } else if (s.season_number <= lastSeason) {
+                    const limit =
+                        s.season_number === lastSeason
+                            ? Math.min(s.episode_count || 0, lastEp)
+                            : s.episode_count || 0;
+
+                    queryClient.setQueryData(
+                        seasonKey,
+                        Array.from({ length: limit }, (_, i) => ({
+                            id: `temp-${s.season_number}-${i + 1}`,
+                            tmdb_id: tmdbData.id,
+                            season_number: s.season_number,
+                            episode_number: i + 1,
+                            user_id: 'temp-user',
+                        })),
+                    );
+                }
+            });
+
+            return { previousSeasonsData };
+        },
+        onError: (_err, vars, context) => {
+            if (context?.previousSeasonsData) {
+                Object.entries(context.previousSeasonsData).forEach(([seasonNum, oldData]) => {
+                    queryClient.setQueryData(
+                        QUERY_KEYS.episodes(vars.tmdbData.id, Number(seasonNum)),
+                        oldData,
+                    );
+                });
+            }
+        },
+        onSettled: (_data, _error, vars) => {
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.library] });
+
+            queryClient.invalidateQueries({
+                queryKey: [QUERY_KEYS.userEpisodes, vars.tmdbData.id],
+            });
+        },
+    });
+
+    return { toggleEpisode, toggleSeason, toggleShowWatched };
 };

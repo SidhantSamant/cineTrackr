@@ -31,7 +31,7 @@ const HEADING_MAP = {
 } as const;
 
 const SECTION_TITLES = {
-    trending: 'Trending',
+    trending: 'Trending Now',
     top_rated: 'Top Rated',
     hidden_gems: 'Hidden Gems',
 };

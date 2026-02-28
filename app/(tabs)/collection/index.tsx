@@ -3,7 +3,7 @@ import { ScrollView } from 'react-native';
 
 export default function CollectionScreen() {
     return (
-        <ScrollView className="gap-2 px-3">
+        <ScrollView className="gap-2 px-3" showsVerticalScrollIndicator={false}>
             <LibraryListSection
                 title="Continue Watching"
                 status="watching"
@@ -12,13 +12,13 @@ export default function CollectionScreen() {
             />
 
             <LibraryListSection
-                title="Watchlist"
+                title="Your Watchlist"
                 status="watchlist"
                 emptyMessage="No items in your watchlist"
             />
 
             <LibraryListSection
-                title="Favorites"
+                title="Your Favorites"
                 isFavorite={true}
                 emptyMessage="No favorites yet"
             />

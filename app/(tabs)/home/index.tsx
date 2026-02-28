@@ -48,14 +48,14 @@ export default function HomeScreen() {
                         />
 
                         <LibraryListSection
-                            title="Watchlist"
+                            title="Your Watchlist"
                             status="watchlist"
                             emptyMessage="No items in your watchlist"
                             isGridView={false}
                         />
 
                         <LibraryListSection
-                            title="Favorites"
+                            title="Your Favorites"
                             isFavorite={true}
                             emptyMessage="No favorites yet"
                             isGridView={false}

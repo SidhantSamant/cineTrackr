@@ -7,6 +7,7 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { getYouTubeKey } from '@/utils/detailHelper';
 import { mapTmdbToLibraryItem } from '@/utils/mappers';
 import { Linking } from 'react-native';
+import { useEpisodeGuide } from './useEpisodeGuide';
 
 type Params = {
     libraryItem?: Partial<UserLibraryVM> | null;
@@ -18,7 +19,9 @@ export const useMediaActions = ({ libraryItem, data, type }: Params) => {
     const user = useAuthStore((state) => state.user);
     const { showWarning } = useGlobalError();
     const { showErrorToast, showSuccessToast } = useToast();
+
     const { addToLibrary, removeFromLibrary, updateStatus, toggleFavorite } = useLibraryMutations();
+    const { toggleShowWatched } = useEpisodeGuide();
     const { presentLogin } = useAuthSheet();
 
     const requireAuth = (actionName: string) => {
@@ -66,7 +69,21 @@ export const useMediaActions = ({ libraryItem, data, type }: Params) => {
             addToLibrary.mutate({ ...payload, status: targetAction });
         }
 
-        showSuccessToast(`Watchlist updated`);
+        if (type === 'tv') {
+            const isCurrentlyCompleted = libraryItem?.status === 'completed';
+            const willBeCompleted = targetAction === 'completed' && !isCurrentlyCompleted;
+
+            if (isCurrentlyCompleted !== willBeCompleted) {
+                toggleShowWatched.mutate({
+                    tmdbData: data,
+                    isWatched: willBeCompleted,
+                });
+            }
+        }
+
+        showSuccessToast(
+            targetAction === 'completed' ? 'Watched list updated' : 'Watchlist updated',
+        );
     };
 
     /**
