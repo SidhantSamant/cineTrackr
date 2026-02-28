@@ -68,6 +68,9 @@ export const useEpisodeGuide = () => {
             queryClient.invalidateQueries({
                 queryKey: QUERY_KEYS.episodes(vars.show.tmdb_id, vars.season),
             });
+            queryClient.invalidateQueries({
+                queryKey: [QUERY_KEYS.itemStatus, vars.show.tmdb_id, vars.show.media_type],
+            });
             queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.library] });
         },
     });
@@ -113,6 +116,9 @@ export const useEpisodeGuide = () => {
         onSettled: (_data, _error, vars) => {
             queryClient.invalidateQueries({
                 queryKey: QUERY_KEYS.episodes(vars.show.tmdb_id, vars.seasonNum),
+            });
+            queryClient.invalidateQueries({
+                queryKey: [QUERY_KEYS.itemStatus, vars.show.tmdb_id, vars.show.media_type],
             });
             queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.library] });
         },
