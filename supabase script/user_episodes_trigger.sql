@@ -14,27 +14,27 @@ BEGIN
   UPDATE user_library
   SET 
     episodes_watched = _new_count,
+    updated_at = NOW(),
     status = CASE 
-      -- A. Reset to Watchlist
+      -- A. Zero episodes watched? It belongs in the watchlist.
       WHEN _new_count <= 0 THEN 'watchlist'::app_media_status
 
-      -- B. Mark Complete
+      -- B. Reached the end? Mark as completed. 
       WHEN COALESCE(total_episodes, 0) > 0 AND _new_count >= total_episodes THEN 'completed'::app_media_status
-      
-      -- C. Revert to Watching
-      WHEN status = 'completed' AND _new_count < total_episodes THEN 'watching'::app_media_status
-      
-      -- D. Start Watching
-      WHEN status = 'watchlist' AND _new_count > 0 THEN 'watching'::app_media_status
-      
-      -- E. Default
+
+      -- C. Has at least 1 episode, but isn't done? It is ALWAYS 'watching'.
+      WHEN _new_count > 0 THEN 'watching'::app_media_status
+
       ELSE status
     END
+
   WHERE user_id = _user_id AND tmdb_id = _tmdb_id AND media_type = 'tv';
 
   RETURN NULL;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql; 
+
+DROP TRIGGER IF EXISTS trigger_sync_episode_count ON user_episodes;
 
 CREATE TRIGGER trigger_sync_episode_count
 AFTER INSERT OR DELETE ON user_episodes

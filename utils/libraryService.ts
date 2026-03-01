@@ -49,7 +49,7 @@ class LibraryService {
     public async getItemStatus(tmdbId: number, mediaType: MediaType) {
         const { data, error } = await supabase
             .from('user_library')
-            .select('id, status, is_favorite')
+            .select('id, status, is_favorite, episodes_watched')
             .eq('tmdb_id', tmdbId)
             .eq('media_type', mediaType)
             .maybeSingle();

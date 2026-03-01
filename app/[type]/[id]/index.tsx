@@ -27,13 +27,17 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo } from 'react';
 import { FlatList, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import Animated from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+type GenreItem = { id: number; name: string };
+type ProductionCompany = { id: number; logo_path: string | null; name: string };
 
 const MediaDetailScreen = () => {
     const { id, type } = useLocalSearchParams<{ id: string; type: MediaType }>();
     const { showError } = useGlobalError();
     const insets = useSafeAreaInsets();
+
     const HEADER_HEIGHT = insets.top + 56;
     const IMG_HEIGHT = 200;
 
@@ -59,6 +63,7 @@ const MediaDetailScreen = () => {
         enabled: !!data?.belongs_to_collection?.id,
     });
 
+    // --- Derived Data & Memos ---
     const movieCollectionSorted = useMemo(() => {
         if (!movieCollections?.parts) return undefined;
         return [...movieCollections.parts].sort((a, b) => {
@@ -74,6 +79,10 @@ const MediaDetailScreen = () => {
         return releaseDate ? new Date(releaseDate) <= new Date() : false;
     }, [data, type]);
 
+    const topCast = useMemo(() => {
+        return data?.credits?.cast?.slice(0, 10) || [];
+    }, [data?.credits?.cast]);
+
     useEffect(() => {
         if (error || libraryItemError || errorCollections || (!data && !isLoading)) {
             showError({
@@ -83,7 +92,16 @@ const MediaDetailScreen = () => {
                 onRightButtonPress: !errorCollections ? refetch : refetchCollections,
             });
         }
-    }, [error, libraryItemError, errorCollections, data, isLoading]);
+    }, [
+        error,
+        libraryItemError,
+        errorCollections,
+        data,
+        isLoading,
+        showError,
+        refetch,
+        refetchCollections,
+    ]);
 
     const { onScroll, imageAnimatedStyle, headerAnimatedStyle } = useParallaxScroll({
         imgHeight: IMG_HEIGHT,
@@ -102,6 +120,31 @@ const MediaDetailScreen = () => {
     const providers = data?.['watch/providers']?.results;
     const ratingColor = data ? getRatingColor(data.vote_average) : '#fff';
 
+    const totalEpisodes = data?.number_of_episodes || 0;
+    const watchedEpisodes = libraryItem?.episodes_watched || 0;
+
+    const isCompleted =
+        libraryItem?.status === 'completed' ||
+        (totalEpisodes > 0 && watchedEpisodes >= totalEpisodes);
+
+    const progressPercent = isCompleted
+        ? 100
+        : totalEpisodes > 0
+          ? Math.min((watchedEpisodes / totalEpisodes) * 100, 100)
+          : 0;
+
+    const progressAnimatedStyle = useAnimatedStyle(() => {
+        return {
+            width: withTiming(`${progressPercent}%`, {
+                duration: 500,
+            }),
+        };
+    }, [progressPercent]);
+
+    const shouldShowProgressCard = type === 'tv' && totalEpisodes > 0;
+    const hasProductionCompanies = data?.production_companies?.length > 0;
+    const hasRecommendations = data?.recommendations?.results?.length > 0;
+
     return (
         <View className="flex-1 bg-[#121212]">
             <AnimatedHeader
@@ -111,7 +154,7 @@ const MediaDetailScreen = () => {
             />
 
             {isLoading || isLibraryItemLoading ? (
-                <DetailScreenSkeleton />
+                <DetailScreenSkeleton isTVShow={type === 'tv'} />
             ) : error || (!data && !isLoading) ? (
                 <View className="flex-1" />
             ) : (
@@ -222,27 +265,61 @@ const MediaDetailScreen = () => {
                                     />
                                 )}
                             </View>
+
+                            {/* Episode Guide & Progress */}
+                            {shouldShowProgressCard && (
+                                <Pressable
+                                    className="mt-5 overflow-hidden rounded-xl border border-neutral-800 bg-neutral-900/60 active:opacity-70"
+                                    onPress={() =>
+                                        router.navigate({
+                                            pathname: `/[type]/[id]/episode-guide`,
+                                            params: { type, id, title: data.name },
+                                        })
+                                    }>
+                                    <View className="p-4">
+                                        <View className="mb-3 flex-row items-center justify-between">
+                                            <View className="flex-row items-center gap-x-3">
+                                                <View className="rounded-full bg-neutral-800 p-2.5">
+                                                    <Ionicons name="list" size={20} color="white" />
+                                                </View>
+                                                <View>
+                                                    <Text className="text-base font-bold text-white">
+                                                        Episode Guide
+                                                    </Text>
+                                                    <Text className="text-xs font-medium text-neutral-400">
+                                                        {isCompleted
+                                                            ? `${totalEpisodes} / ${totalEpisodes} Episodes`
+                                                            : `${watchedEpisodes} / ${totalEpisodes} Episodes`}
+                                                    </Text>
+                                                </View>
+                                            </View>
+                                            <Ionicons
+                                                name="chevron-forward"
+                                                size={20}
+                                                color="#525252"
+                                            />
+                                        </View>
+
+                                        <View className="h-1.5 w-full overflow-hidden rounded-full bg-neutral-800">
+                                            <Animated.View
+                                                className="h-full rounded-full"
+                                                style={[
+                                                    progressAnimatedStyle,
+                                                    {
+                                                        backgroundColor: isCompleted
+                                                            ? '#10b981'
+                                                            : '#fff',
+                                                    },
+                                                ]}
+                                            />
+                                        </View>
+                                    </View>
+                                </Pressable>
+                            )}
                         </View>
                     </View>
 
-                    <View className="bg-[#121212] px-3 pb-8 pt-4">
-                        {/* Episode Guide */}
-                        {type === 'tv' && (
-                            <Pressable
-                                className="mb-6 flex-row items-center justify-between border-b border-neutral-800 pb-4 active:opacity-60"
-                                onPress={() =>
-                                    router.navigate({
-                                        pathname: `/[type]/[id]/episode-guide`,
-                                        params: { type, id, title: data.name },
-                                    })
-                                }>
-                                <Text className="text-lg font-semibold text-white">
-                                    Episode Guide
-                                </Text>
-                                <Ionicons name="chevron-forward" size={20} color="gray" />
-                            </Pressable>
-                        )}
-
+                    <View className="bg-[#121212] px-3 pb-8 pt-6">
                         {/* Overview */}
                         <View className="mb-6">
                             <Text className="mb-2 text-lg font-semibold text-white">Overview</Text>
@@ -253,10 +330,10 @@ const MediaDetailScreen = () => {
 
                         {/* Genres */}
                         <ScrollView
-                            className="mb-6 flex-row flex-wrap"
+                            className="mb-6"
                             horizontal
                             showsHorizontalScrollIndicator={false}>
-                            {data.genres.map((genre: { id: number; name: string }) => (
+                            {data?.genres?.map((genre: GenreItem) => (
                                 <View
                                     key={genre.id}
                                     className="mr-2 rounded-full border border-neutral-700 bg-neutral-800 px-4 py-2">
@@ -266,18 +343,14 @@ const MediaDetailScreen = () => {
                         </ScrollView>
 
                         {/* Production Info */}
-                        {data.production_companies?.length > 0 && (
+                        {hasProductionCompanies && (
                             <View className="mb-6">
                                 <Text className="mb-3 text-lg font-semibold text-white">
                                     Production
                                 </Text>
                                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                                    {data.production_companies.map(
-                                        (company: {
-                                            id: number;
-                                            logo_path: string | null;
-                                            name: string;
-                                        }) => (
+                                    {data?.production_companies?.map(
+                                        (company: ProductionCompany) => (
                                             <View
                                                 key={company.id}
                                                 className="mr-6 flex-row items-center opacity-80">
@@ -302,13 +375,13 @@ const MediaDetailScreen = () => {
                         )}
 
                         {/* Top Cast */}
-                        {data.credits?.cast?.length > 0 && (
+                        {topCast.length > 0 && (
                             <View>
                                 <Text className="mb-3 text-lg font-semibold text-white">
                                     Top Cast
                                 </Text>
                                 <FlatList<CastVM>
-                                    data={data.credits.cast?.slice(0, 10)}
+                                    data={topCast}
                                     renderItem={({ item }) => <CastItem item={item} />}
                                     keyExtractor={(item) => item.id.toString()}
                                     horizontal
@@ -335,7 +408,7 @@ const MediaDetailScreen = () => {
                                 )
                             )}
 
-                            {data.recommendations?.results?.length > 0 && (
+                            {hasRecommendations && (
                                 <HomeHorizontalList
                                     ListHeading="Recommendations"
                                     listType={type}

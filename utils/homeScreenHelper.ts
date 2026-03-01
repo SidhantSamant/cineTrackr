@@ -15,7 +15,6 @@ export enum SectionHeadings {
 }
 
 export const HomeListSections = [
-    // { heading: SectionHeadings.AiringTodayTV, type: 'tv' as const },
     { heading: SectionHeadings.PopularTV, type: 'tv' as const },
     { heading: SectionHeadings.TrendingAnime, type: 'tv' as const },
     { heading: SectionHeadings.PopularMovies, type: 'movie' as const },
@@ -23,8 +22,6 @@ export const HomeListSections = [
     { heading: SectionHeadings.TopRatedTV, type: 'tv' as const },
     { heading: SectionHeadings.TopRatedAnime, type: 'tv' as const },
     { heading: SectionHeadings.TopRatedMovies, type: 'movie' as const },
-    // { heading: SectionHeadings.NowPlayingMovies, type: 'movie' as const }, //overlap with Popular
-    // { heading: SectionHeadings.OnTheAirTV, type: 'tv' as const }, //overlap with Popular and AiringToday
     { heading: SectionHeadings.HiddenGemsMovies, type: 'movie' as const },
     { heading: SectionHeadings.HiddenGemsTV, type: 'tv' as const },
     { heading: SectionHeadings.HiddenGemsAnime, type: 'tv' as const },

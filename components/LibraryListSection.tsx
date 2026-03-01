@@ -1,4 +1,4 @@
-import { useMappedLibrary } from '@/hooks/useLibraryLists';
+import { useLibraryLists } from '@/hooks/useLibraryLists';
 import { useCallback, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import SectionHeader, { ListMediaType } from './SectionHeader';
@@ -49,7 +49,7 @@ export default function LibraryListSection({
         } as any;
     }, [activeTab, status, isFavorite, showMovieTab]);
 
-    const { data, isLoading, isPlaceholderData } = useMappedLibrary(
+    const { data, isLoading, isPlaceholderData } = useLibraryLists(
         userId,
         filters,
         isGridView ? 8 : 20,

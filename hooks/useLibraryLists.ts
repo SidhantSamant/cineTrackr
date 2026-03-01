@@ -3,7 +3,7 @@ import { mapLibraryToTmdb } from '@/utils/mappers';
 import { LibraryFilters, libraryService } from '@/utils/libraryService';
 import { QUERY_KEYS } from './useLibrary';
 
-export const useMappedLibrary = (
+export const useLibraryLists = (
     userId: string | undefined,
     filters: LibraryFilters,
     limit?: number,

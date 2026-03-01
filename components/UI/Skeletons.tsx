@@ -193,7 +193,7 @@ export const SearchResultListSkeleton = ({ count = 6 }: { count?: number }) => {
     );
 };
 
-export const DetailScreenSkeleton = () => {
+export const DetailScreenSkeleton = ({ isTVShow }: { isTVShow: boolean }) => {
     const shimmer = useShimmerAnimation();
 
     return (
@@ -224,7 +224,11 @@ export const DetailScreenSkeleton = () => {
                     <SkeletonBox shimmer={shimmer} className="h-[60px] w-[60px] rounded-full" />
                 </View>
 
-                {/* Overview Block) */}
+                {isTVShow && (
+                    <SkeletonBox shimmer={shimmer} className="mt-5 h-20 w-full rounded-xl" />
+                )}
+
+                {/* Overview Block */}
                 <View className="mt-8 gap-3">
                     <SkeletonBox shimmer={shimmer} className="mb-2 h-6 w-32 rounded-sm" />
                     <SkeletonBox shimmer={shimmer} className="h-4 w-full rounded-sm" />
@@ -244,7 +248,6 @@ export const DetailScreenSkeleton = () => {
                 {/* Production Companies */}
                 <View className="mt-8">
                     <SkeletonBox shimmer={shimmer} className="mb-4 h-6 w-28 rounded-sm" />
-
                     <View className="flex-row gap-3">
                         <SkeletonBox shimmer={shimmer} className="h-4 w-36 rounded-sm" />
                         <SkeletonBox shimmer={shimmer} className="h-4 w-36 rounded-sm" />
