@@ -53,6 +53,9 @@ const ProfileScreen = () => {
 
     const changePasswordSheetRef = useRef<ChangePasswordSheetRef>(null);
 
+    const providers = user?.app_metadata?.providers || [];
+    const isEmailUser = providers.includes('email');
+
     const {
         data: stats,
         isLoading: statsLoading,
@@ -270,11 +273,14 @@ const ProfileScreen = () => {
                             Account
                         </Text>
                         <View className="border-b border-t border-neutral-800 bg-neutral-900/50">
-                            <MenuItem
-                                icon="key-outline"
-                                label="Change Password"
-                                onPress={() => changePasswordSheetRef.current?.present()}
-                            />
+                            {isEmailUser && (
+                                <MenuItem
+                                    icon="key-outline"
+                                    label="Change Password"
+                                    onPress={() => changePasswordSheetRef.current?.present()}
+                                />
+                            )}
+
                             <MenuItem
                                 icon="log-out-outline"
                                 label="Sign Out"
@@ -297,7 +303,7 @@ const ProfileScreen = () => {
                 </View>
             </ScrollView>
 
-            {user && <ChangePasswordSheet ref={changePasswordSheetRef} />}
+            {user && isEmailUser && <ChangePasswordSheet ref={changePasswordSheetRef} />}
         </>
     );
 };

@@ -33,6 +33,7 @@
             "expo-router",
             "expo-web-browser",
             "expo-font",
+            "@react-native-google-signin/google-signin",
             [
                 "expo-splash-screen",
                 {

@@ -1,9 +1,11 @@
 import { useGlobalError } from '@/context/GlobalErrorContext';
 import { useToast } from '@/context/ToastContext';
 import { supabase } from '@/lib/supabase';
+import { useAuthStore } from '@/store/useAuthStore';
 import { getSupabaseAuthError } from '@/utils/uiHelper';
 import { validate } from '@/utils/validationHelper';
 import { TrueSheet } from '@lodev09/react-native-true-sheet';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { useMutation } from '@tanstack/react-query';
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import {
@@ -16,13 +18,14 @@ import {
     TextInput,
     View,
 } from 'react-native';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import AuthInput from './UI/AuthInput';
-import { useAuthStore } from '@/store/useAuthStore';
 
 export interface AuthBottomSheetRef {
     present: (mode: 'login' | 'signup') => void;
     dismiss: () => void;
 }
+
 const AuthBottomSheet = forwardRef<AuthBottomSheetRef, {}>((props, ref) => {
     const { showError } = useGlobalError();
     const { showSuccessToast } = useToast();
@@ -50,24 +53,6 @@ const AuthBottomSheet = forwardRef<AuthBottomSheetRef, {}>((props, ref) => {
         },
     }));
 
-    const onPresent = () => {
-        setIsOpen(true);
-    };
-
-    const onDismiss = () => {
-        setMode('login');
-        setEmail('');
-        setPassword('');
-        setConfirmPassword('');
-        setIsOpen(false);
-    };
-
-    const handleDismiss = () => {
-        if (sheetRef && 'current' in sheetRef) {
-            sheetRef.current?.dismiss();
-        }
-    };
-
     useEffect(() => {
         const onBackPress = () => {
             if (isOpen) {
@@ -78,7 +63,37 @@ const AuthBottomSheet = forwardRef<AuthBottomSheetRef, {}>((props, ref) => {
         };
         const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
         return () => subscription.remove();
-    }, [isOpen, sheetRef]);
+    }, [isOpen]);
+
+    const onPresent = () => setIsOpen(true);
+
+    const handleDismiss = () => sheetRef.current?.dismiss();
+
+    const onDismiss = () => {
+        setMode('login');
+        setEmail('');
+        setPassword('');
+        setConfirmPassword('');
+        setIsOpen(false);
+    };
+
+    const handleAuthSuccess = (session: any, successMessage: string) => {
+        if (!session) {
+            showError("Couldn't authenticate. Please try again.");
+            return;
+        }
+        setSession(session);
+        handleDismiss();
+        showSuccessToast(successMessage);
+    };
+
+    const handleAuthError = (error: any, retryAction?: () => void) => {
+        showError({
+            message: getSupabaseAuthError(error),
+            rightButtonText: retryAction ? 'Retry' : undefined,
+            onRightButtonPress: retryAction,
+        });
+    };
 
     const loginMutation = useMutation({
         mutationFn: async (credentials: typeof inputs) => {
@@ -86,23 +101,8 @@ const AuthBottomSheet = forwardRef<AuthBottomSheetRef, {}>((props, ref) => {
             if (error) throw error;
             return data;
         },
-        onSuccess: (data) => {
-            const { session } = data;
-            if (!session) {
-                showError("Couldn't login. Please try again.");
-            } else {
-                setSession(session);
-                handleDismiss();
-                showSuccessToast('Login successful!');
-            }
-        },
-        onError: (error: any) => {
-            showError({
-                message: getSupabaseAuthError(error),
-                rightButtonText: 'Retry',
-                onRightButtonPress: handleLogin,
-            });
-        },
+        onSuccess: ({ session }) => handleAuthSuccess(session, 'Login successful!'),
+        onError: (error) => handleAuthError(error, handleLogin),
     });
 
     const signupMutation = useMutation({
@@ -111,29 +111,38 @@ const AuthBottomSheet = forwardRef<AuthBottomSheetRef, {}>((props, ref) => {
             if (error) throw error;
             return data;
         },
-        onSuccess: (data) => {
-            const { session } = data;
-            if (!session) {
-                showError("Couldn't create account. Please try again.");
-            } else {
-                setSession(session);
-                handleDismiss();
-                showSuccessToast('Registration successful!');
+        onSuccess: ({ session }) => handleAuthSuccess(session, 'Registration successful!'),
+        onError: (error) => handleAuthError(error, handleSignup),
+    });
+
+    const googleAuthMutation = useMutation({
+        mutationFn: async () => {
+            await GoogleSignin.hasPlayServices();
+            const userInfo = await GoogleSignin.signIn();
+
+            if (userInfo.data?.idToken) {
+                const { data, error } = await supabase.auth.signInWithIdToken({
+                    provider: 'google',
+                    token: userInfo.data.idToken,
+                });
+                if (error) throw error;
+                return data;
             }
+            throw new Error('No ID token present!');
         },
+        onSuccess: ({ session }) =>
+            handleAuthSuccess(session, 'Successfully signed in with Google!'),
         onError: (error: any) => {
-            showError({
-                message: getSupabaseAuthError(error),
-                rightButtonText: 'Retry',
-                onRightButtonPress: handleSignup,
-            });
+            if (error.code !== 'SIGN_IN_CANCELLED') {
+                handleAuthError(error);
+            }
         },
     });
 
     const handleLogin = () => {
         Keyboard.dismiss();
         const emailCheck = validate.email(inputs.email);
-        if (!emailCheck.isValid && emailCheck.error) return showError(emailCheck.error);
+        if (!emailCheck.isValid) return showError(emailCheck.error!);
         if (!inputs.password) return showError('Please enter your password');
         loginMutation.mutate(inputs);
     };
@@ -141,11 +150,14 @@ const AuthBottomSheet = forwardRef<AuthBottomSheetRef, {}>((props, ref) => {
     const handleSignup = () => {
         Keyboard.dismiss();
         const emailCheck = validate.email(inputs.email);
-        if (!emailCheck.isValid && emailCheck.error) return showError(emailCheck.error);
+        if (!emailCheck.isValid) return showError(emailCheck.error!);
+
         const passwordCheck = validate.password(password);
-        if (!passwordCheck.isValid && passwordCheck.error) return showError(passwordCheck.error);
+        if (!passwordCheck.isValid) return showError(passwordCheck.error!);
+
         const matchCheck = validate.match(password, confirmPassword);
-        if (!matchCheck.isValid && matchCheck.error) return showError(matchCheck.error);
+        if (!matchCheck.isValid) return showError(matchCheck.error!);
+
         signupMutation.mutate(inputs);
     };
 
@@ -157,7 +169,8 @@ const AuthBottomSheet = forwardRef<AuthBottomSheetRef, {}>((props, ref) => {
         setMode(mode === 'login' ? 'signup' : 'login');
     };
 
-    const isPending = loginMutation.isPending || signupMutation.isPending;
+    const isPending =
+        loginMutation.isPending || signupMutation.isPending || googleAuthMutation.isPending;
 
     return (
         <TrueSheet
@@ -234,7 +247,7 @@ const AuthBottomSheet = forwardRef<AuthBottomSheetRef, {}>((props, ref) => {
                         className={`mt-2 items-center rounded-full py-4 shadow-lg active:opacity-90 ${
                             mode === 'login' ? 'bg-white' : 'bg-primary shadow-primary/20'
                         }`}>
-                        {isPending ? (
+                        {loginMutation.isPending || signupMutation.isPending ? (
                             <ActivityIndicator color="black" />
                         ) : (
                             <Text className="text-lg font-bold text-black">
@@ -243,7 +256,29 @@ const AuthBottomSheet = forwardRef<AuthBottomSheetRef, {}>((props, ref) => {
                         )}
                     </Pressable>
 
-                    <Pressable onPress={handleToggleMode} className="mt-2" disabled={isPending}>
+                    <View className="my-2 flex-row items-center">
+                        <View className="h-[1px] flex-1 bg-neutral-800" />
+                        <Text className="mx-4 text-sm font-medium text-neutral-500">OR</Text>
+                        <View className="h-[1px] flex-1 bg-neutral-800" />
+                    </View>
+
+                    <Pressable
+                        onPress={() => googleAuthMutation.mutate()}
+                        disabled={isPending}
+                        className="flex-row items-center justify-center gap-x-3 rounded-full border border-neutral-700 bg-neutral-900 py-4 active:bg-neutral-800">
+                        {googleAuthMutation.isPending ? (
+                            <ActivityIndicator color="white" />
+                        ) : (
+                            <>
+                                <Ionicons name="logo-google" size={20} color="white" />
+                                <Text className="text-base font-bold text-white">
+                                    Continue with Google
+                                </Text>
+                            </>
+                        )}
+                    </Pressable>
+
+                    <Pressable onPress={handleToggleMode} className="mt-4" disabled={isPending}>
                         <Text className="text-center text-neutral-400">
                             {mode === 'login'
                                 ? "Don't have an account? "

@@ -139,8 +139,16 @@ export const formatDateFast = (dateString?: string) => {
 };
 
 export const getSupabaseAuthError = (error: any): string => {
-    const msg = error?.message?.toLowerCase() || '';
+    // google auth
+    const code = error?.code?.toString().toUpperCase() || '';
+    if (code === 'IN_PROGRESS') {
+        return 'Sign in is already in progress.';
+    }
+    if (code === 'PLAY_SERVICES_NOT_AVAILABLE') {
+        return 'Google Play Services is required to sign in on this device.';
+    }
 
+    const msg = error?.message?.toLowerCase() || '';
     if (msg.includes('invalid login credentials')) {
         return 'Incorrect email or password. Please try again.';
     }
