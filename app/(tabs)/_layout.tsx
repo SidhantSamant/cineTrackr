@@ -14,7 +14,7 @@ export default function TabLayout() {
             initialRouteName="home"
             screenOptions={{
                 // tabBarShowLabel: false,
-                tabBarActiveTintColor: Colors.activeTab,
+                tabBarActiveTintColor: Colors.primary,
                 tabBarInactiveTintColor: Colors.inactiveTab,
                 tabBarStyle: {
                     // backgroundColor: '#1E1E1E',

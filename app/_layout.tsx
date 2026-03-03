@@ -1,3 +1,4 @@
+import AppUpdateModal from '@/components/AppUpdateModal';
 import { Colors } from '@/constants/Colors';
 import { MyDarkTheme } from '@/constants/Theme';
 import { AuthSheetProvider } from '@/context/AuthSheetContext';
@@ -103,6 +104,7 @@ function RootLayoutNav() {
                 <GlobalErrorProvider>
                     <ToastProvider>
                         <AuthSheetProvider>
+                            <AppUpdateModal />
                             <Stack
                                 screenOptions={{
                                     contentStyle: { backgroundColor: Colors.background },
