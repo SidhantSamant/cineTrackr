@@ -1,9 +1,9 @@
 {
     "expo": {
         "name": "Cine Trackr",
-        "slug": "cineTrackr",
+        "slug": "cine-trackr",
         "version": "1.0.0",
-        "scheme": "cineTrackr",
+        "scheme": "cinetrackr",
         "orientation": "portrait",
         "icon": "./assets/icon.png",
         "userInterfaceStyle": "dark",
@@ -15,7 +15,11 @@
         },
         "assetBundlePatterns": ["**/*"],
         "ios": {
-            "supportsTablet": true
+            "supportsTablet": true,
+            "bundleIdentifier": "com.sidhantsamant.cinetrackr",
+            "infoPlist": {
+                "ITSAppUsesNonExemptEncryption": false
+            }
         },
         "android": {
             "adaptiveIcon": {
@@ -53,6 +57,23 @@
         "experiments": {
             "typedRoutes": true,
             "tsconfigPaths": true
+        },
+        "extra": {
+            "router": {},
+            "expo-navigation-bar": {
+                "backgroundColor": "#121212",
+                "barStyle": "light"
+            },
+            "eas": {
+                "projectId": "2ec40610-3167-402d-bf67-42bbae510e62"
+            }
+        },
+        "owner": "sidhantsamant",
+        "runtimeVersion": {
+            "policy": "appVersion"
+        },
+        "updates": {
+            "url": "https://u.expo.dev/2ec40610-3167-402d-bf67-42bbae510e62"
         }
     }
 }
