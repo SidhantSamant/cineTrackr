@@ -247,7 +247,7 @@ const ProfileScreen = () => {
                     )}
                 </View>
 
-                {/* <View className="mt-6">
+                <View className="mt-6">
                     <Text className="mb-2 px-5 text-xs font-bold uppercase tracking-wider text-neutral-500">
                         General
                     </Text>
@@ -256,16 +256,16 @@ const ProfileScreen = () => {
                             icon="shield-checkmark-outline"
                             label="Privacy Policy"
                             // onPress={() => Linking.openURL('https://cine-trackr.com/privacy')}
-                            onPress={() => {}}
+                            onPress={() => router.navigate('/(legal)/privacy')}
                         />
                         <MenuItem
                             icon="information-circle-outline"
                             label="Terms of Service"
                             // onPress={() => Linking.openURL('https://cine-trackr.com/terms')}
-                            onPress={() => {}}
+                            onPress={() => router.navigate('/(legal)/terms')}
                         />
                     </View>
-                </View> */}
+                </View>
 
                 {user && (
                     <View className="mt-8">

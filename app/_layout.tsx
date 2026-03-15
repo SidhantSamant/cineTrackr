@@ -110,6 +110,7 @@ function RootLayoutNav() {
                                     contentStyle: { backgroundColor: Colors.background },
                                 }}>
                                 <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                                <Stack.Screen name="(legal)" options={{ headerShown: false }} />
                                 <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
                                 <Stack.Screen name="[type]/[id]" options={{ headerShown: false }} />
                             </Stack>
