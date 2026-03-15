@@ -25,10 +25,6 @@ Cine Trackr is a comprehensive, open-source utility application designed to help
 
 </details>
 
-## Overview
-
-The application serves as a centralized, ad-free hub for media enthusiasts to track their viewing progress without the clutter of traditional social media. Built with a focus on fast performance and data integrity, Cine Trackr utilizes the TMDb API for comprehensive media metadata and Supabase for secure backend authentication and database syncing.
-
 ---
 
 ## Screenshots
