@@ -105,8 +105,8 @@ Cine Trackr is a comprehensive, open-source utility application designed to help
 
 1. Clone the repository:
     ```bash
-    git clone https://github.com/SidhantSamant/cineTrackr.git
-    cd cineTrackr
+    git clone https://github.com/SidhantSamant/cine-trackr.git
+    cd cine-trackr
     ```
 2. Install dependencies:
     ```bash
